@@ -21,9 +21,9 @@ from dex2c.util import JniLongName, get_method_triple, get_access_method, is_syn
 APKTOOL = 'tools/apktool.jar'
 SIGNJAR = 'tools/signapk.jar'
 NDKBUILD = 'ndk-build'
-LIBNATIVECODE = 'libnc.so'
+LIBNATIVECODE = 'libstub.so'
 
-logger = logging.getLogger('dcc')
+logger = logging.getLogger('dex2c')
 
 tempfiles = []
 
@@ -36,7 +36,7 @@ def cpu_count():
         num_processes = 2
     return num_processes
 
-def make_temp_dir(prefix='dcc'):
+def make_temp_dir(prefix='dex2c'):
     global tempfiles
     tmp = tempfile.mkdtemp(prefix=prefix)
     tempfiles.append(tmp)
@@ -65,7 +65,7 @@ def clean_temp_files():
 class ApkTool(object):
     @staticmethod
     def decompile(apk):
-        outdir = make_temp_dir('dcc-apktool-')
+        outdir = make_temp_dir('dex2c-apktool-')
         subprocess.check_call(['java', '-jar', APKTOOL, 'd', '-r', '-f', '-o', outdir, apk])
         return outdir
 
@@ -335,7 +335,7 @@ def write_compiled_methods(project_dir, compiled_methods):
 
 
 def archive_compiled_code(project_dir):
-    outfile = make_temp_file('-dcc')
+    outfile = make_temp_file('-dex2c')
     outfile = shutil.make_archive(outfile, 'zip', project_dir)
     return outfile
 
@@ -380,7 +380,7 @@ def compile_dex(apkfile, filtercfg):
 def is_apk(name):
     return name.endswith('.apk')
 
-def dcc_main(apkfile, filtercfg, outapk, do_compile=True, project_dir=None, source_archive='project-source.zip'):
+def dex2c_main(apkfile, filtercfg, outapk, do_compile=True, project_dir=None, source_archive='project-source.zip'):
     if not os.path.exists(apkfile):
         logger.error("file %s is not exists", apkfile)
         return
@@ -401,7 +401,7 @@ def dcc_main(apkfile, filtercfg, outapk, do_compile=True, project_dir=None, sour
             shutil.copytree('project', project_dir)
         write_compiled_methods(project_dir, compiled_methods)
     else:
-        project_dir = make_temp_dir('dcc-project-')
+        project_dir = make_temp_dir('dex2c-project-')
         shutil.rmtree(project_dir)
         shutil.copytree('project', project_dir)
         write_compiled_methods(project_dir, compiled_methods)
@@ -445,22 +445,22 @@ if __name__ == '__main__':
     else:
         project_dir = None
 
-    dcc_cfg = {}
-    with open('dcc.cfg') as fp:
-        dcc_cfg = json.load(fp)
+    dex2c_cfg = {}
+    with open('dex2c.cfg') as fp:
+        dex2c_cfg = json.load(fp)
 
-    if 'ndk_dir' in dcc_cfg and os.path.exists(dcc_cfg['ndk_dir']):
-        ndk_dir = dcc_cfg['ndk_dir']
+    if 'ndk_dir' in dex2c_cfg and os.path.exists(dex2c_cfg['ndk_dir']):
+        ndk_dir = dex2c_cfg['ndk_dir']
         if is_windows():
             NDKBUILD = os.path.join(ndk_dir, 'ndk-build.cmd')
         else:
             NDKBUILD = os.path.join(ndk_dir, 'ndk-build')
 
-    if 'apktool' in dcc_cfg and os.path.exists(dcc_cfg['apktool']):
-        APKTOOL = dcc_cfg['apktool']
+    if 'apktool' in dex2c_cfg and os.path.exists(dex2c_cfg['apktool']):
+        APKTOOL = dex2c_cfg['apktool']
 
     try:
-        dcc_main(infile, filtercfg, outapk, do_compile, project_dir, source_archive)
+        dex2c_main(infile, filtercfg, outapk, do_compile, project_dir, source_archive)
     except Exception as e:
         logger.error("Compile %s failed!" % infile, exc_info=True)
     finally:

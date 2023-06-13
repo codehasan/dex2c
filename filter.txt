@@ -1,3 +1,5 @@
+# Add your regex patterns to be used as filter
+
 # do not compile constructor
 !<clinit|init>
 
@@ -10,3 +12,6 @@
 
 # compile all method, use to test compiler
 #.*
+
+# compile all method of specific class
+#com/your/package;.*

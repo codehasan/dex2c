@@ -1,7 +1,7 @@
 LOCAL_PATH:= $(call my-dir)
 
 include $(CLEAR_VARS)
-LOCAL_MODULE    := nc
+LOCAL_MODULE    := stub
 LOCAL_LDLIBS    := -llog
 
 SOURCES := $(wildcard $(LOCAL_PATH)/nc/*.cpp)
