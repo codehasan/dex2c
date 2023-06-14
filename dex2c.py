@@ -19,7 +19,7 @@ from dex2c.compiler import Dex2C
 from dex2c.util import JniLongName, get_method_triple, get_access_method, is_synthetic_method, is_native_method
 
 APKTOOL = 'tools/apktool.jar'
-SIGNJAR = 'tools/signapk.jar'
+SIGNJAR = 'tools/uber-apk-signer.jar'
 NDKBUILD = 'ndk-build'
 LIBNATIVECODE = 'libstub.so'
 
@@ -52,14 +52,7 @@ def make_temp_file(suffix=''):
 
 
 def clean_temp_files():
-    for name in tempfiles:
-        if not os.path.exists(name):
-            continue
-        logger.info('removing %s' % name)
-        if os.path.isdir(name):
-            shutil.rmtree(name)
-        else:
-            os.unlink(name)
+    shutil.rmtree('./tmp')
 
 
 class ApkTool(object):
@@ -71,16 +64,14 @@ class ApkTool(object):
 
     @staticmethod
     def compile(decompiled_dir):
-        unsiged_apk = make_temp_file('-unsigned.apk')
+        unsiged_apk = './tmp/output.apk'
         subprocess.check_call(['java', '-jar', APKTOOL, 'b', '-o', unsiged_apk, decompiled_dir])
         return unsiged_apk
 
 
-def sign(unsigned_apk, signed_apk):
-    pem = os.path.join('tests/testkey/testkey.x509.pem')
-    pk8 = os.path.join('tests/testkey/testkey.pk8')
-    logger.info("signing %s -> %s" % (unsigned_apk, signed_apk))
-    subprocess.check_call(['java', '-jar', SIGNJAR, pem, pk8, unsigned_apk, signed_apk])
+def sign(unsigned_apk):
+    logger.info("Signing %s" % unsigned_apk)
+    subprocess.check_call(['java', '-jar', SIGNJAR, '-a', unsigned_apk, '-o', './output', '--skipZipAlign'])
 
 
 def build_project(project_dir, num_processes=0):
@@ -380,10 +371,18 @@ def compile_dex(apkfile, filtercfg):
 def is_apk(name):
     return name.endswith('.apk')
 
-def dex2c_main(apkfile, filtercfg, outapk, do_compile=True, project_dir=None, source_archive='project-source.zip'):
+def dex2c_main(apkfile, filtercfg, do_compile=True, project_dir=None, source_archive='./output/project-source.zip'):
     if not os.path.exists(apkfile):
         logger.error("file %s is not exists", apkfile)
         return
+    
+    if os.path.exists('./output'):
+        try:
+            shutil.rmtree('./output')
+            os.mkdir('./output')
+        except OSError as x:
+            print("Error occured: %s : %s" % ('./output', x.strerror))
+            return
 
     compiled_methods, errors = compile_dex(apkfile, filtercfg)
 
@@ -393,7 +392,7 @@ def dex2c_main(apkfile, filtercfg, outapk, do_compile=True, project_dir=None, so
         logger.warning('================================')
 
     if len(compiled_methods) == 0:
-        logger.info("no compiled methods")
+        logger.info("No methods were compiled!")
         return
 
     if project_dir:
@@ -411,12 +410,12 @@ def dex2c_main(apkfile, filtercfg, outapk, do_compile=True, project_dir=None, so
     if do_compile:
         build_project(project_dir)
 
-    if is_apk(apkfile) and outapk:
+    if is_apk(apkfile):
         decompiled_dir = ApkTool.decompile(apkfile)
         native_compiled_dexes(decompiled_dir, compiled_methods)
         copy_compiled_libs(project_dir, decompiled_dir)
         unsigned_apk = ApkTool.compile(decompiled_dir)
-        sign(unsigned_apk, outapk)
+        sign(unsigned_apk)
 
 
 sys.setrecursionlimit(5000)
@@ -424,18 +423,14 @@ sys.setrecursionlimit(5000)
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
 
-    parser.add_argument('infile', help='Input APK,DEX name')
-    parser.add_argument('-o', '--out', nargs='?', help='Output APK file name')
-    parser.add_argument('--sign', action='store_true', default=False, help='Sign apk')
+    parser.add_argument('app', help='Input apk or dex name/path')
     parser.add_argument('--filter', default='filter.txt', help='Method filter configure file')
     parser.add_argument('--no-build', action='store_true', default=False, help='Do not build the compiled code')
     parser.add_argument('--source-dir', help='The compiled cpp code output directory.')
-    parser.add_argument('--project-archive', default='project-source.zip', help='Archive the project directory')
+    parser.add_argument('--project-archive', default='./output/project-source.zip', help='Archive the project directory')
 
     args = vars(parser.parse_args())
-    infile = args['infile']
-    outapk = args['out']
-    do_sign = args['sign']
+    infile = args['app']
     filtercfg = args['filter']
     do_compile = not args['no_build']
     source_archive = args['project_archive']
@@ -460,7 +455,7 @@ if __name__ == '__main__':
         APKTOOL = dex2c_cfg['apktool']
 
     try:
-        dex2c_main(infile, filtercfg, outapk, do_compile, project_dir, source_archive)
+        dex2c_main(infile, filtercfg, do_compile, project_dir, source_archive)
     except Exception as e:
         logger.error("Compile %s failed!" % infile, exc_info=True)
     finally:
