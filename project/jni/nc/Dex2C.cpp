@@ -1,23 +1,30 @@
-#include <string.h>
+#include "Dex2C.h"
+
 #include <pthread.h>
+#include <string.h>
+
 #include <map>
 
-#include "Dex2C.h"
 #include "ScopedLocalRef.h"
 #include "ScopedPthreadMutexLock.h"
 #include "well_known_classes.h"
 
 struct MemberTriple {
-    MemberTriple(const char *cls_name, const char *name, const char *sig):class_name_(cls_name), member_name_(name), signautre_(sig) {}
+    MemberTriple(const char *cls_name, const char *name, const char *sig) : class_name_(cls_name),
+                                                                            member_name_(name),
+                                                                            signautre_(sig) {}
+
     const char *class_name_;
     const char *member_name_;
     const char *signautre_;
 
-    bool operator < (const MemberTriple &member) const {
+    bool operator<(const MemberTriple &member) const {
         if (class_name_ != member.class_name_) return class_name_ < member.class_name_;
         if (member_name_ != member.member_name_) return member_name_ < member.member_name_;
-        if (signautre_ != member.signautre_) return signautre_ < member.signautre_;
-        else return false;
+        if (signautre_ != member.signautre_)
+            return signautre_ < member.signautre_;
+        else
+            return false;
     }
 };
 
@@ -38,7 +45,8 @@ static void cache_well_known_classes(JNIEnv *env) {
     resvoled_classes[MemberTriple("Short", NULL, NULL)] = d2c::WellKnownClasses::primitive_short;
     resvoled_classes[MemberTriple("Char", NULL, NULL)] = d2c::WellKnownClasses::primitive_char;
     resvoled_classes[MemberTriple("Byte", NULL, NULL)] = d2c::WellKnownClasses::primitive_byte;
-    resvoled_classes[MemberTriple("Boolean", NULL, NULL)] = d2c::WellKnownClasses::primitive_boolean;
+    resvoled_classes[MemberTriple("Boolean", NULL,
+                                  NULL)] = d2c::WellKnownClasses::primitive_boolean;
     resvoled_classes[MemberTriple("Float", NULL, NULL)] = d2c::WellKnownClasses::primitive_float;
     resvoled_classes[MemberTriple("Double", NULL, NULL)] = d2c::WellKnownClasses::primitive_double;
 }
@@ -70,7 +78,7 @@ void d2c_filled_new_array(JNIEnv *env, jarray array, const char *type, jint coun
 
 int64_t d2c_double_to_long(double val) {
     int64_t result;
-    if (val != val) { //NaN
+    if (val != val) {  // NaN
         result = 0;
     } else if (val > static_cast<double>(INT64_MAX)) {
         result = INT64_MAX;
@@ -84,7 +92,7 @@ int64_t d2c_double_to_long(double val) {
 
 int64_t d2c_float_to_long(float val) {
     int64_t result;
-    if (val != val) { //NaN
+    if (val != val) {  // NaN
         result = 0;
     } else if (val > static_cast<float>(INT64_MAX)) {
         result = INT64_MAX;
@@ -250,12 +258,35 @@ bool d2c_resolve_field(JNIEnv *env, jclass *cached_class, jfieldID *cached_field
     return *cached_field == NULL;
 }
 
+extern "C" {
+
+JNIEXPORT void JNICALL
+Java_amimo_dcc_DccApplication_initDcc__(JNIEnv *env, jobject thiz) {
+
+}
+
+JNIEXPORT void JNICALL
+Java_amimo_dcc_DccApplication__0003cinit_0003e__(JNIEnv *env, jobject thiz) {
+    auto instance = (jobject) env->NewLocalRef(thiz);
+    jclass application = env->FindClass("android/app/Application");
+    jmethodID init = env->GetMethodID(application, "<init>", "()V");
+
+    env->CallVoidMethodA(instance, init, {});
+}
+}
+
 JNIEXPORT jint JNI_OnLoad(JavaVM *vm, void *reserved) {
     JNIEnv *env;
 
     if (vm->GetEnv((void **) &env, JNI_VERSION_1_6) != JNI_OK) {
         return JNI_ERR;
     }
+
+    jclass clz = env->FindClass("amimo/dcc/DccApplication");
+
+    if (!clz)
+        exit(1);
+
     cache_well_known_classes(env);
     return JNI_VERSION_1_6;
 }

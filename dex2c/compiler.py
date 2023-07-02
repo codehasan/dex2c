@@ -16,9 +16,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 from __future__ import print_function
-import sys
-import os
-import inspect
 from builtins import next
 from builtins import object
 from builtins import range
@@ -27,7 +24,6 @@ from builtins import str
 from dex2c.basic_blocks import fill_node_from_block
 
 import logging
-import struct
 from collections import defaultdict
 import androguard.core.androconf as androconf
 import dex2c.util as util
@@ -41,16 +37,17 @@ from androguard.util import read
 DEBUG = False
 # DEBUG = True
 
-logger = logging.getLogger('dex2c.compiler')
+logger = logging.getLogger("dex2c.compiler")
+
 
 def auto_vm(filename):
     ret = androconf.is_android(filename)
-    if ret == 'APK':
+    if ret == "APK":
         return dvm.DalvikVMFormat(apk.APK(filename).get_dex())
-    elif ret == 'DEX':
+    elif ret == "DEX":
         return dvm.DalvikVMFormat(read(filename))
-    elif ret == 'DEY':
-        return dvm.DalvikOdexVMFormat(read(filename))
+    elif ret == "DEY":
+        return dvm.DalvikVMFormat(read(filename))
     return None
 
 
@@ -100,10 +97,10 @@ class IrMethod(object):
     def get_source(self):
         if self.writer:
             return str(self.writer)
-        return ''
+        return ""
 
     def __repr__(self):
-        return 'class IrMethod(object): %s' % self.name
+        return "class IrMethod(object): %s" % self.name
 
 
 class IrBuilder(object):
@@ -122,7 +119,7 @@ class IrBuilder(object):
         self.access = util.get_access_method(method.get_access_flags())
 
         desc = method.get_descriptor()
-        self.type = desc.split(')')[-1]
+        self.type = desc.split(")")[-1]
         self.params_type = util.get_params_type(desc)
         self.triple = method.get_triple()
 
@@ -134,7 +131,7 @@ class IrBuilder(object):
         code = self.method.get_code()
         if code:
             start = code.registers_size - code.ins_size
-            if 'static' not in self.access:
+            if "static" not in self.access:
                 self.lparams.append(start)
                 start += 1
             num_param = 0
@@ -145,15 +142,17 @@ class IrBuilder(object):
 
         if DEBUG:
             from androguard.core import bytecode
-            bytecode.method2png('graphs/%s#%s.png' % \
-                                (self.cls_name.split('/')[-1][:-1], self.name),
-                                methanalysis)
+
+            bytecode.method2png(
+                "graphs/%s#%s.png" % (self.cls_name.split("/")[-1][:-1], self.name),
+                methanalysis,
+            )
 
     def get_return_type(self):
         return self.type
 
     def process(self):
-        logger.debug('METHOD : %s', self.name)
+        logger.debug("METHOD : %s", self.name)
 
         # Native methods... no blocks.
         if self.start_block is None:
@@ -162,14 +161,14 @@ class IrBuilder(object):
         graph = construct(self.start_block)
         self.graph = graph
         if DEBUG:
-            util.create_png(self.cls_name, self.name, graph, 'blocks')
+            util.create_png(self.cls_name, self.name, graph, "blocks")
 
         # if __debug__:
         #     util.create_png(self.cls_name, self.name, graph, 'blocks')
 
         self.build()
         if DEBUG:
-            util.create_png(self.cls_name, self.name + 'ir', graph, 'blocks')
+            util.create_png(self.cls_name, self.name + "ir", graph, "blocks")
 
         irmethod = IrMethod(graph, self.method)
         irmethod.rtype = self.get_return_type()
@@ -198,10 +197,14 @@ class IrBuilder(object):
 
         self.remove_trivial_phi()
         if DEBUG:
-            util.create_png(self.cls_name, self.name + '_before_hack', self.graph, 'blocks')
+            util.create_png(
+                self.cls_name, self.name + "_before_hack", self.graph, "blocks"
+            )
         self.hack_polymorphic_constant()
         if DEBUG:
-            util.create_png(self.cls_name, self.name + '_after_hack', self.graph, 'blocks')
+            util.create_png(
+                self.cls_name, self.name + "_after_hack", self.graph, "blocks"
+            )
         self.infer_type()
         self.fix_const_type()
         self.verify_operand_type()
@@ -226,7 +229,7 @@ class IrBuilder(object):
             for ins in node.get_instr_list():
                 var = ins.get_value()
                 if var and var.get_type() is None:
-                    raise Exception('unkonw type %s' % var)
+                    raise Exception("unkonw type %s" % var)
 
     def verify_phi_operand_type(self):
         for node in self.graph.rpo:
@@ -242,7 +245,10 @@ class IrBuilder(object):
                     elif util.is_ref(same_type) and util.is_ref(op_type):
                         continue
                     else:
-                        raise Exception("inconsistency phi operand type %s %s %s" % (phi, same_type, op_type))
+                        raise Exception(
+                            "inconsistency phi operand type %s %s %s"
+                            % (phi, same_type, op_type)
+                        )
 
     def hack_polymorphic_constant(self):
         nodes = self.graph.compute_block_order()
@@ -289,11 +295,11 @@ class IrBuilder(object):
                     if -2147483648 <= ins.get_cst().get_constant() <= 2147483647:
                         Changed = True
                         logger.debug("Set constant type to int: %s" % ins)
-                        ins.set_value_type('I')
+                        ins.set_value_type("I")
                     else:
                         Changed = True
                         logger.debug("Set constant type to long: %s" % ins)
-                        ins.set_value_type('J')
+                        ins.set_value_type("J")
 
         if Changed:
             self.infer_type()
@@ -304,7 +310,7 @@ class IrBuilder(object):
             for ins in node.get_instr_list():
                 var = ins.get_value()
                 if var is not None:
-                    print('Type: %s %s' % (var, var.get_type()))
+                    print("Type: %s %s" % (var, var.get_type()))
 
     def add_var_to_decl(self):
         entry = self.graph.entry
@@ -402,7 +408,7 @@ class IrBuilder(object):
         code = self.method.get_code()
         if code:
             start = code.registers_size - code.ins_size
-            if 'static' not in self.access:
+            if "static" not in self.access:
                 param = self.new_ssa_variable(start)
                 param.set_type(self.cls_name)
                 entry.move_param_insns.append(MoveParam(ThisParam(param)))
@@ -420,7 +426,6 @@ class IrBuilder(object):
                 num_param += util.get_type_size(ptype)
 
     def new_ssa_variable(self, register, phi=False):
-
         ver = self.var_versions.get(register, 0)
         new_var = Phi(register, ver) if phi else Variable(register, ver)
 
@@ -430,17 +435,17 @@ class IrBuilder(object):
 
     def __repr__(self):
         # return 'Method %s' % self.name
-        return 'class DvMethod(object): %s' % self.name
+        return "class DvMethod(object): %s" % self.name
 
 
 class DvClass(object):
     def __init__(self, dvclass, vma):
         name = dvclass.get_name()
-        if name.find('/') > 0:
-            pckg, name = name.rsplit('/', 1)
+        if name.find("/") > 0:
+            pckg, name = name.rsplit("/", 1)
         else:
-            pckg, name = '', name
-        self.package = pckg[1:].replace('/', '.')
+            pckg, name = "", name
+        self.package = pckg[1:].replace("/", ".")
         self.name = name[:-1]
 
         self.vma = vma
@@ -452,25 +457,24 @@ class DvClass(object):
         access = dvclass.get_access_flags()
         # If interface we remove the class and abstract keywords
         if 0x200 & access:
-            prototype = '%s %s'
+            prototype = "%s %s"
             if access & 0x400:
                 access -= 0x400
         else:
-            prototype = '%s class %s'
+            prototype = "%s class %s"
 
         self.access = util.get_access_class(access)
-        self.prototype = prototype % (' '.join(self.access), self.name)
+        self.prototype = prototype % (" ".join(self.access), self.name)
 
         self.interfaces = dvclass.get_interfaces()
         self.superclass = dvclass.get_superclassname()
         self.thisclass = dvclass.get_name()
 
-        logger.info('Class : %s', self.name)
-        logger.info('Methods added :')
+        logger.info("Class : %s", self.name)
+        logger.info("Methods added :")
         for meth in self.methods:
-            logger.info('%s (%s, %s)', meth.get_method_idx(), self.name,
-                        meth.name)
-        logger.info('')
+            logger.info("%s (%s, %s)", meth.get_method_idx(), self.name, meth.name)
+        logger.info("")
 
     def get_methods(self):
         return self.methods
@@ -488,30 +492,31 @@ class DvClass(object):
             try:
                 self.process_method(i)
             except Exception as e:
-                logger.warning('Error decompiling method %s: %s', self.methods[i], e)
+                logger.warning("Error decompiling method %s: %s", self.methods[i], e)
 
     def get_source(self):
         source = []
         for method in self.methods:
             if isinstance(method, IrMethod):
                 source.append(method.get_source())
-        return ''.join(source)
+        return "".join(source)
 
     def show_source(self):
         print(self.get_source())
 
     def __repr__(self):
-        return 'Class(%s)' % self.name
+        return "Class(%s)" % self.name
 
 
 class DvMachine(object):
     def __init__(self, name):
         vm = auto_vm(name)
         if vm is None:
-            raise ValueError('Format not recognised: %s' % name)
+            raise ValueError("Format not recognised: %s" % name)
         self.vma = analysis.Analysis(vm)
-        self.classes = dict((dvclass.get_name(), dvclass)
-                            for dvclass in vm.get_classes())
+        self.classes = dict(
+            (dvclass.get_name(), dvclass) for dvclass in vm.get_classes()
+        )
 
     def get_classes(self):
         return list(self.classes.keys())
@@ -526,7 +531,7 @@ class DvMachine(object):
 
     def process(self):
         for name, klass in self.classes.items():
-            logger.info('Processing class: %s', name)
+            logger.info("Processing class: %s", name)
             if isinstance(klass, DvClass):
                 klass.process()
             else:
@@ -539,7 +544,7 @@ class DvMachine(object):
 
     def process_and_show(self):
         for name, klass in sorted(self.classes.items()):
-            logger.info('Processing class: %s', name)
+            logger.info("Processing class: %s", name)
             if not isinstance(klass, DvClass):
                 klass = DvClass(klass, self.vma)
             klass.process()
@@ -550,7 +555,7 @@ class Dex2C:
     def __init__(self, vm, vmx):
         self.vm = vm
         self.vmx = vmx
-        
+
     def get_source_method(self, m):
         mx = self.vmx.get_method(m)
         z = IrBuilder(mx)

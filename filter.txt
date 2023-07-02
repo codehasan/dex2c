@@ -1,17 +1,20 @@
-# Add your regex patterns to be used as filter
+# Rules are made using regex patters
+# In dcc smali is processed like this - com/package/some_class;some_method(parameters)return_type
+# So your patterns should correspond to our smali processing style
 
-# do not compile constructor
-!<clinit|init>
+# You can exclude a method in all classes from being protected using !
+!<init>
+!onCreate
 
-# test demo
-!bigGoto
-.*TestCompiler.*
+# You can exclude a method in a specific class from being protected using !
+# Here we are excluding onCreate method from being protected in com/package/you_class
+!com/package/your_class;onCreate\(.*
 
-# compile method named onCreate, mostly activity's onCreate
-.*;onCreate\(Landroid/os/Bundle;.*
+# You can also exclude classes from being protected using !
+!com/package/your_class;.*
 
-# compile all method, use to test compiler
-#.*
+# Let's say, you want all methods in a certain class to be protected
+com/package/your_class;.*
 
-# compile all method of specific class
-#com/your/package;.*
+# Also if you want all methods from all classes in a certain package path to be protected
+com/your/package/.*;.*

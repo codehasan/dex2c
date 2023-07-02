@@ -1,7 +1,9 @@
 networkx
-pydot
+pydot>=1.4.1
 future
 pyasn1
 cryptography
-lxml
-asn1crypto
+lxml>=4.3.0
+asn1crypto>=0.24.0
+loguru
+mutf8
