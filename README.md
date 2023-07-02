@@ -147,6 +147,9 @@ Adding an exclamation `!` sign before a rule will mark that rule as a blacklist.
 !.*;onCreate\(.*
 ```
 
+<p align="right">(<a href="#readme-top">back to top</a>)</p>
+
+
 ### Protect Apps
 
 - Copy your apk file in `dex2c` folder where `dcc.py` is located and run this command
