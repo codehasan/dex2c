@@ -46,8 +46,9 @@ This project is a forked version of [amimo/dcc](https://github.com/amimo/dcc), w
 
 ### Built with
 
-* ![Python][https://img.shields.io/badge/Python-F6D049?style=for-the-badge&logo=python]
-* [![Androguard][https://img.shields.io/badge/Androguard-FFFFFF?style=for-the-badge&logo=androguard]](https://github.com/androguard/androguard)
+
+* ![Python][Python-Badge]
+* [![Androguard][Androguard-Badge]][Androguard_Repository]
 
 
 <!-- GETTING STARTED -->
@@ -75,12 +76,10 @@ Python 3.8 or higher is required for running this tool. So, make sure your pytho
    ```bash
    pip3 install -r requirements.txt
    ```
-2. Install JRE/JDK if not already installed.
+2. Install JRE/JDK if you don't have it installed.
    ```bash
    sudo apt-get install openjdk-11-jdk
    ```
-
-<p align="right">(<a href="#readme-top">back to top</a>)</p>
 
 ### Windows
 
@@ -88,9 +87,7 @@ Python 3.8 or higher is required for running this tool. So, make sure your pytho
    ```bash
    pip3 install -r requirements.txt
    ```
-2. Install JRE/JDK from <a href="https://www.oracle.com/java/technologies/javase/jdk11-archive-downloads.html">oracle</a> if not already installed. Then add the bin folder path in PATH environment variable. Search in google, how to install JDK in windows if you need more guidance on this topic.
-
-<p align="right">(<a href="#readme-top">back to top</a>)</p>
+2. Install JRE/JDK from <a href="https://www.oracle.com/java/technologies/javase/jdk11-archive-downloads.html">oracle</a> if you don't have it installed. Search in google, how to install JDK in windows if you need more guidance on this topic.
 
 
 
@@ -147,8 +144,6 @@ Adding an exclamation `!` sign before a rule will mark that rule as a blacklist.
 !.*;onCreate\(.*
 ```
 
-<p align="right">(<a href="#readme-top">back to top</a>)</p>
-
 
 ### Protect apps
 
@@ -163,8 +158,6 @@ python3 dcc.py -a input.apk -o output.apk
 ```bash
 python3 dcc.py --help
 ```
-
-<p align="right">(<a href="#readme-top">back to top</a>)</p>
 
 
 
@@ -182,8 +175,6 @@ python3 dcc.py --help
 
 See the [open issues](https://github.com/ratsan/dex2c/issues) for a full list of proposed features and known issues.
 
-<p align="right">(<a href="#readme-top">back to top</a>)</p>
-
 
 
 <!-- CONTRIBUTING -->
@@ -200,16 +191,12 @@ Don't forget to give this project a star! Thanks again!
 4. Push to the branch. (`git push origin feature/AmazingFeature`)
 5. Open a pull request.
 
-<p align="right">(<a href="#readme-top">back to top</a>)</p>
-
 
 
 <!-- LICENSE -->
 ## License
 
 Distributed under the Apache License. See `LICENSE.txt` for more information.
-
-<p align="right">(<a href="#readme-top">back to top</a>)</p>
 
 
 
@@ -226,4 +213,9 @@ Distributed under the Apache License. See `LICENSE.txt` for more information.
 * Rahat - [Telegram](https://t.me/botxrahat)
 * GoldenBoot - [Telegram](https://t.me/goldenboot)
 
-<p align="right"><a href="#readme-top">back to top</a></p>
+<p align="right"><a href="#readme-top">Go to top</a></p>
+
+<!-- MARKDOWN LINKS & IMAGES -->
+[Python-Badge]: https://img.shields.io/badge/Python-F6D049?style=for-the-badge&logo=python
+[Androguard-Badge]: https://img.shields.io/badge/Androguard-FFFFFF?style=for-the-badge&logo=android
+[Androguard_Repository]: https://github.com/androguard/androguard
