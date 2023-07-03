@@ -120,7 +120,7 @@ com/some/package/.*;.*
 .*;onCreate\(.*
 ```
 
-##### BlackList
+#### BlackList
 
 Adding an exclamation `!` sign before a rule will mark that rule as a blacklist.
 
