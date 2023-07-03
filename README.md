@@ -76,7 +76,7 @@ Python 3.8 or higher is required for running this tool. So, make sure your pytho
    ```bash
    pip3 install -r requirements.txt
    ```
-2. Install JRE/JDK if you don't have it installed.
+2. Install JRE/JDK if you don't have it installed. Recommended jdk version is 11.
    ```bash
    sudo apt-get install openjdk-11-jdk
    ```
@@ -87,7 +87,7 @@ Python 3.8 or higher is required for running this tool. So, make sure your pytho
    ```bash
    pip3 install -r requirements.txt
    ```
-2. Install JRE/JDK from <a href="https://www.oracle.com/java/technologies/javase/jdk11-archive-downloads.html">oracle</a> if you don't have it installed. Search in google, how to install JDK in windows if you need more guidance on this topic.
+2. Install JRE/JDK from <a href="https://www.oracle.com/java/technologies/javase/jdk11-archive-downloads.html">oracle</a> if you don't have it installed. Search in google, how to install JDK in windows if you need more guidance on this topic. Recommended jdk version is 11.
 
 
 
