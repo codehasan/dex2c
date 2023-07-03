@@ -3,31 +3,31 @@
 <div align="center">
   <h1 align="center">𝐃𝐞𝐱𝟐𝐂</h1>
   <p align="center">
-    Method based aot compiler that can wrap dalvik bytecode with jni native
+    Method based AOT compiler that can wrap dalvik bytecode with jni native code.
   </p>
 </div>
 
 <!-- TABLE OF CONTENTS -->
-<summary>Table of Contents</summary>
+<summary>Table of contents</summary>
   <ul>
     <li>
-      <a href="#about-the-project">About The Project</a>
+      <a href="#about-the-project">About the project</a>
       <ul>
-        <li><a href="#built-with">Built With</a></li>
+        <li><a href="#built-with">Built with</a></li>
       </ul>
     </li>
     <li>
       <a href="#installation">Installation</a>
       <ul>
         <li><a href="#linux">Linux</a></li>
-        <li><a href="#windows">Widndows</a></li>
+        <li><a href="#windows">Windows</a></li>
       </ul>
     </li>
     <li>
       <a href="#usage">Usage</a>
         <ul>
           <li><a href="#filters">Filters</a></li>
-          <li><a href="#protect-apps">Protect Apps</a></li>
+          <li><a href="#protect-apps">Protect apps</a></li>
         </ul>
     </li>
     <li><a href="#roadmap">Roadmap</a></li>
@@ -39,27 +39,27 @@
 
 
 <!-- ABOUT THE PROJECT -->
-## About The Project
+## About the project
 
 This project is a forked version of [amimo/dcc](https://github.com/amimo/dcc), which aims to make it easy for everyone to use this tool. We automated plenty of process that you had to do manually in original dcc. Moreover, we always try to add new features to make this tool more usable in real world applications.
 
 
-### Built With
+### Built with
 
-* ![Python][Python3]
-* [![Androguard][Androguard3]][Androguard_Url]
+* ![Python][https://img.shields.io/badge/Python-F6D049?style=for-the-badge&logo=python]
+* [![Androguard][https://img.shields.io/badge/Androguard-FFFFFF?style=for-the-badge&logo=androguard]](https://github.com/androguard/androguard)
 
 
 <!-- GETTING STARTED -->
 ## Installation
 
-It requires python 3.8 or higher version to run this tool. So, make sure your python is up-to-date.
+Python 3.8 or higher is required for running this tool. So, make sure your python is up-to-date.
 
-1. Clone the repo
+1. Clone the repo.
    ```bash
-   git clone https://github.com/ratsan/dex2c.git
+   git clone https://github.com/ratsan/dex2c
    ```
-2. Open cloned directory
+2. Open the cloned directory.
    ```bash
    cd dex2c
    ```
@@ -67,15 +67,15 @@ It requires python 3.8 or higher version to run this tool. So, make sure your py
    ```bash
    wget -O tools/apktool.jar https://bitbucket.org/iBotPeaches/apktool/downloads/apktool_2.7.0.jar
    ```
-4. <a href="https://developer.android.com/ndk/downloads">Download</a> andorid ndk for your operating system and extract it. Copy the folder path where `ndk-build` executable is located inside the extracted folder and configure `ndk_dir` in `dcc.cfg`
+4. <a href="https://developer.android.com/ndk/downloads">Download</a> android NDK for your OS and extract it. Copy the folder path where `ndk-build` executable is located inside the extracted folder and configure `ndk_dir` in `dcc.cfg`
 
 ### Linux
 
-1. Install required dependencies
+1. Install required dependencies.
    ```bash
    pip3 install -r requirements.txt
    ```
-2. Install JRE or JDK if not already installed
+2. Install JRE/JDK if not already installed.
    ```bash
    sudo apt-get install openjdk-11-jdk
    ```
@@ -84,11 +84,11 @@ It requires python 3.8 or higher version to run this tool. So, make sure your py
 
 ### Windows
 
-1. Install required dependencies
+1. Install required dependencies.
    ```bash
    pip3 install -r requirements.txt
    ```
-2. Install JRE or JDK from <a href="https://www.oracle.com/java/technologies/javase/jdk11-archive-downloads.html">oracle</a> if not already installed. Then add the bin folder path in PATH environment variable. Search in google, how to install jdk in windows if you need more guidance on this topic.
+2. Install JRE/JDK from <a href="https://www.oracle.com/java/technologies/javase/jdk11-archive-downloads.html">oracle</a> if not already installed. Then add the bin folder path in PATH environment variable. Search in google, how to install JDK in windows if you need more guidance on this topic.
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
@@ -150,15 +150,15 @@ Adding an exclamation `!` sign before a rule will mark that rule as a blacklist.
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
 
-### Protect Apps
+### Protect apps
 
-- Copy your apk file in `dex2c` folder where `dcc.py` is located and run this command
+- Copy your apk file in `dex2c` folder where `dcc.py` is located and run this command.
 
 ```bash
 python3 dcc.py -a input.apk -o output.apk
 ```
 
-- Run this command to know about all the other options available in dcc to find the best ones for your need
+- Run this command to know about all the other options available in dcc to find the best ones for your need.
 
 ```bash
 python3 dcc.py --help
@@ -180,7 +180,7 @@ python3 dcc.py --help
     - [x] --custom-loader
     - [x] --force-keep-libs
 
-See the [open issues](https://github.com/ratsan/dex2c/issues) for a full list of proposed features (and known issues).
+See the [open issues](https://github.com/ratsan/dex2c/issues) for a full list of proposed features and known issues.
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
@@ -192,13 +192,13 @@ See the [open issues](https://github.com/ratsan/dex2c/issues) for a full list of
 Contributions are what make the open source community such an amazing place to learn, inspire, and create. Any contributions you make are **greatly appreciated**.
 
 If you have a suggestion that would make this better, please fork the repo and create a pull request. You can also simply open an issue with the tag "enhancement".
-Don't forget to give the project a star! Thanks again!
+Don't forget to give this project a star! Thanks again!
 
-1. Fork the Project
-2. Create your Feature Branch (`git checkout -b feature/AmazingFeature`)
-3. Commit your Changes (`git commit -m 'Add some AmazingFeature'`)
-4. Push to the Branch (`git push origin feature/AmazingFeature`)
-5. Open a Pull Request
+1. Fork the project
+2. Create your feature branch. (`git checkout -b feature/AmazingFeature`)
+3. Commit your changes. (`git commit -m 'Add some AmazingFeature'`)
+4. Push to the branch. (`git push origin feature/AmazingFeature`)
+5. Open a pull request.
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
@@ -219,19 +219,11 @@ Distributed under the Apache License. See `LICENSE.txt` for more information.
 ### Projects
 
 * [DCC](https://github.com/amimo/dcc)
-* [Androguard][Androguard_Url]
+* [Androguard](https://github.com/androguard/androguard)
 
 ### People
 
-* GoldenBoot - [Telegram](https://t.me/goldenboot)
 * Rahat - [Telegram](https://t.me/botxrahat)
+* GoldenBoot - [Telegram](https://t.me/goldenboot)
 
-<p align="right">(<a href="#readme-top">back to top</a>)</p>
-
-
-
-<!-- MARKDOWN LINKS & IMAGES -->
-<!-- https://www.markdownguide.org/basic-syntax/#reference-style-links -->
-[Python3]: https://img.shields.io/badge/Python-F6D049?style=for-the-badge&logo=python
-[Androguard3]: https://img.shields.io/badge/Androguard-FFFFFF?style=for-the-badge&logo=androguard
-[Androguard_Url]: https://github.com/androguard/androguard
+<p align="right"><a href="#readme-top">back to top</a></p>
