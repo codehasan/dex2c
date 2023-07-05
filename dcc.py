@@ -486,8 +486,11 @@ def write_compiled_methods(project_dir, compiled_methods):
         if os.path.exists(filepath):
             Logger.warning("Overwrite file %s %s" % (filepath, method_triple))
 
-        with open(filepath, "w") as fp:
-            fp.write('#include "Dex2C.h"\n' + code)
+        try:
+            with open(filepath, "w") as fp:
+                fp.write('#include "Dex2C.h"\n' + code)
+        except Exception as e:
+            print(f"{str(e)}\n")
 
     with open(os.path.join(source_dir, "compiled_methods.txt"), "w") as fp:
         fp.write("\n".join(list(map("".join, compiled_methods.keys()))))
