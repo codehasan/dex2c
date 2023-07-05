@@ -42,7 +42,7 @@
 ## About the project
 
 This project is a forked version of [amimo/dcc](https://github.com/amimo/dcc), which aims to make it easy for everyone to use this tool. We automated plenty of process that you had to do manually in original dcc. Moreover, we always try to add new features to make this tool more usable in real world applications.
-
+Check out <a href="#roadmap">Roadmap</a> to know about the changes we made and also the changes we are planning to make in the feature.
 
 ### Built with
 
@@ -165,8 +165,9 @@ python3 dcc.py --help
 ## Roadmap
 
 - [x] Add custom lib loader
-- [x] Add apksigner
-- [x] Add abi handler
+- [x] Add new apksigner
+- [x] Add multi-dex support
+- [x] Add app abi handler
 - [x] Add signature configuration in `dcc.cfg`
 - [x] Add new options
     - [x] --skip-synthetic
