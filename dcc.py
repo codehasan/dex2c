@@ -51,8 +51,8 @@ def cpu_count():
 
 # n
 def create_tmp_directory():
-    Logger.info("Creating .tmp folder")
     if not os.path.exists(".tmp"):
+        Logger.info("Creating .tmp folder")
         os.mkdir(".tmp")
 
 
