@@ -203,23 +203,20 @@ def auto_vm(filename):
     ret = androconf.is_android(filename)
 
     if ret == "APK":
-        tmp = {}
-        i = 0
+        dex_files = list()
 
-        for x in apk.APK(filename).get_all_dex():
-            i += 1
-            key = str(i)
-            tmp[key] = dvm.DalvikVMFormat(x)
+        for dex in apk.APK(filename).get_all_dex():
+            dex_files.append(dvm.DalvikVMFormat(dex))
 
-        return tmp
+        return dex_files
 
     elif ret == "DEX":
-        return dvm.DalvikVMFormat(read(filename))
+        return list(dvm.DalvikVMFormat(read(filename)))
 
     elif ret == "DEY":
-        return dvm.DalvikVMFormat(read(filename))
+        return list(dvm.DalvikVMFormat(read(filename)))
 
-    raise Exception("unsupported file %s" % filename)
+    raise Exception("Unsupported file %s" % filename)
 
 
 class MethodFilter(object):
@@ -493,29 +490,31 @@ def archive_compiled_code(project_dir):
 
 
 def compile_dex(apkfile, filtercfg):
-    tmp = auto_vm(apkfile)
+    dex_files = auto_vm(apkfile)
+    dex_analysis = analysis.Analysis()
+
     X_compiled_method_code = {}
     X_errors = []
 
-    for i in tmp:
-        d = tmp[i]
-        dx = analysis.Analysis(d)
+    for dex in dex_files:
+        dex_analysis.add(dex)
 
-        method_filter = MethodFilter(filtercfg, d)
+    for dex in dex_files:
+        method_filter = MethodFilter(filtercfg, dex)
 
-        compiler = Dex2C(d, dx)
+        compiler = Dex2C(dex, dex_analysis)
 
         compiled_method_code = {}
         errors = []
 
-        for m in d.get_methods():
+        for m in dex.get_methods():
             method_triple = get_method_triple(m)
 
             jni_longname = JniLongName(*method_triple)
             full_name = "".join(method_triple)
 
             if len(jni_longname) > 220:
-                Logger.debug("name to long %s(> 220) %s" % (jni_longname, full_name))
+                Logger.debug("Name to long %s(> 220) %s" % (jni_longname, full_name))
                 continue
 
             if method_filter.should_compile(m):
@@ -670,7 +669,7 @@ def dcc_main(
         return
 
     if not outapk:
-        Logger.error("\n\033[31m[ERROR] Output file name required\n\033[0m")
+        Logger.error("\033[31mOutput file name required\n\033[0m")
         return
 
     if custom_loader.rfind(".") == -1:
@@ -772,9 +771,9 @@ def dcc_main(
         if application_class_name == "" or file_path == "":
             try:
                 Logger.info(
-                    "Application class not found in the AndroidManifest.xml or doesn't exist in dex, adding \033[32m"
+                    "\nApplication class not found in the AndroidManifest.xml or doesn't exist in dex, adding \033[32m"
                     + custom_loader
-                    + "\033[0m"
+                    + "\033[0m\n"
                 )
 
                 check_call(
@@ -791,9 +790,9 @@ def dcc_main(
                 Logger.error(f"Error: {e.returncode} - {e.output}", exec_info=True)
         else:
             Logger.info(
-                "Application class from AndroidManifest.xml, \033[32m"
+                "\nApplication class from AndroidManifest.xml, \033[32m"
                 + application_class_name
-                + "\033[0m"
+                + "\033[0m\n"
             )
 
             line_to_insert = (
@@ -955,6 +954,7 @@ if __name__ == "__main__":
     except Exception as e:
         Logger.error("Compile %s failed!" % input_apk, exc_info=True)
         Logger.error(e.strerror)
-    finally:  # n
+    finally:
+        # n
         restore_jni_project_folder(backup_jni_folder_path)
         clean_tmp_directory()
