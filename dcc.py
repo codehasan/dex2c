@@ -312,6 +312,15 @@ class MethodFilter(object):
                         if type_desc.endswith("Dex2C;"):
                             self._add_annotation_method(method)
 
+    def is_constructor(method):
+        if method.get_name() == "<clinit>":
+            return True
+
+        # if method.get_name() == "<init>":
+        #     return True
+
+        return False
+
     def should_compile(self, method):
         # don't compile functions that have same parameter but differ return type
         if method in self.conflict_methods:
@@ -325,12 +334,12 @@ class MethodFilter(object):
         if is_native_method(method):
             return False
 
+        # Skip static constructor
+        if self.is_constructor(method):
+            return False
+
         method_triple = get_method_triple(method)
         cls_name, name, _ = method_triple
-
-        # Skip static constructor
-        if name == "<clinit>":
-            return False
 
         # Android VM may find the wrong method using short jni name
         # don't compile function if there is a same named native method
@@ -493,8 +502,8 @@ def compile_dex(apkfile, filtercfg):
     dex_files = auto_vm(apkfile)
     dex_analysis = analysis.Analysis()
 
-    X_compiled_method_code = {}
-    X_errors = []
+    compiled_method_codes = {}
+    compilation_errors = []
 
     for dex in dex_files:
         dex_analysis.add(dex)
@@ -502,13 +511,10 @@ def compile_dex(apkfile, filtercfg):
     for dex in dex_files:
         method_filter = MethodFilter(filtercfg, dex)
 
-        compiler = Dex2C(dex, dex_analysis)
+        cpp_compiler = Dex2C(dex, dex_analysis)
 
-        compiled_method_code = {}
-        errors = []
-
-        for m in dex.get_methods():
-            method_triple = get_method_triple(m)
+        for method in dex.get_methods():
+            method_triple = get_method_triple(method)
 
             jni_longname = JniLongName(*method_triple)
             full_name = "".join(method_triple)
@@ -517,24 +523,22 @@ def compile_dex(apkfile, filtercfg):
                 Logger.debug("Name to long %s(> 220) %s" % (jni_longname, full_name))
                 continue
 
-            if method_filter.should_compile(m):
+            if method_filter.should_compile(method):
                 Logger.debug("compiling %s" % (full_name))
                 try:
-                    code = compiler.get_source_method(m)
+                    code = cpp_compiler.get_source_method(method)
                 except Exception as e:
                     Logger.warning(
                         "compile method failed:%s (%s)" % (full_name, str(e)),
                         exc_info=True,
                     )
-                    errors.append("%s:%s" % (full_name, str(e)))
-                    X_errors.extend(errors)
+                    compilation_errors.append("%s:%s" % (full_name, str(e)))
                     continue
 
                 if code:
-                    compiled_method_code[method_triple] = code
-                    X_compiled_method_code.update(compiled_method_code)
+                    compiled_method_codes[method_triple] = code
 
-    return X_compiled_method_code, X_errors
+    return compiled_method_codes, compilation_errors
 
 
 def is_apk(name):
