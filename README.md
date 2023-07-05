@@ -30,6 +30,7 @@
           <li><a href="#protect-apps">Protect apps</a></li>
         </ul>
     </li>
+    <li><a href="#how-to-change-lib-name">How to change lib name</a></li>
     <li><a href="#roadmap">Roadmap</a></li>
     <li><a href="#contributing">Contributing</a></li>
     <li><a href="#license">License</a></li>
@@ -158,6 +159,15 @@ python3 dcc.py -a input.apk -o output.apk
 ```bash
 python3 dcc.py --help
 ```
+
+
+<!-- CHANGE LIB NAME -->
+## How to change lib name
+
+Open `project/jni/Android.mk` file in cloned directory. You will find a variable named `LOCAL_MODULE`, which will initially have the value `stub`. Change it to your desired lib name. Keep in mind,
+- Don't use spaces in lib name, use hyphen `-` or underscore `_`
+- Don't use any other kind of symbols or punctuations in lib name
+- Don't start lib name with the text `lib` itself
 
 
 
