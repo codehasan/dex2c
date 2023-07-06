@@ -174,8 +174,12 @@ def sign(unsigned_apk, signed_apk):
         signature = dcc_cfg["signature"]
         keystore = signature["keystore_path"]
 
-    if signature["v1_enabled"] is False and signature["v2_enabled"] is False:
-        Logger.warning("At least one signing scheme should be enabled from v1 & v2")
+    if (
+        signature["v1_enabled"] is False
+        and signature["v2_enabled"] is False
+        and signature["v3_enabled"] is False
+    ):
+        Logger.warning("At least one signing scheme should be enabled from v1, v2 & v3")
         move_unsigned(unsigned_apk, signed_apk)
         return
 
@@ -204,22 +208,28 @@ def sign(unsigned_apk, signed_apk):
         "pass:" + signature["store_pass"],
     ]
 
+    command.append("--v1-signing-enabled")
+    command.append("true" if signature["v1_enabled"] is True else "false")
+    command.append("--v2-signing-enabled")
+    command.append("true" if signature["v2_enabled"] is True else "false")
+    command.append("--v3-signing-enabled")
+    command.append("true" if signature["v3_enabled"] is True else "false")
+    command.append("--v4-signing-enabled")
+    command.append("false")
+
     if signature["v1_enabled"] is True:
         change_min_sdk(command, "21")
         change_max_sdk(command, "23")
         command.append("--v1-signer-name")
         command.append("ANDROID")
-        command.append("--v1-signing-enabled")
 
     if signature["v2_enabled"] is True:
         change_min_sdk(command, "24", False)
         change_max_sdk(command, "26")
-        command.append("--v2-signing-enabled")
 
     if signature["v3_enabled"] is True:
         change_min_sdk(command, "28", False)
         change_max_sdk(command, "29")
-        command.append("--v3-signing-enabled")
 
     try:
         check_call(command, stderr=STDOUT)
