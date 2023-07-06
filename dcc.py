@@ -98,7 +98,7 @@ def clean_tmp_directory():
         rmtree(tmpdir)
     except OSError as e:
         Logger.info("Removing .tmp folder")
-        run(['rd', '/s', '/q', tmpdir], shell=True)
+        run(["rd", "/s", "/q", tmpdir], shell=True)
 
 
 class ApkTool(object):
@@ -137,6 +137,32 @@ class ApkTool(object):
 
 
 # n
+def change_min_sdk(command=list(), min_sdk="21", update_existing=True):
+    if "--min-sdk-version" in command:
+        if update_existing:
+            min_sdk_value_index = command.index("--min-sdk-version") + 1
+            command[min_sdk_value_index] = min_sdk
+        else:
+            return
+    else:
+        command.append("--min-sdk-version")
+        command.append(min_sdk)
+
+
+# n
+def change_max_sdk(command=list(), max_sdk="33", update_existing=True):
+    if "--max-sdk-version" in command:
+        if update_existing:
+            max_sdk_value_index = command.index("--max-sdk-version") + 1
+            command[max_sdk_value_index] = max_sdk
+        else:
+            return
+    else:
+        command.append("--max-sdk-version")
+        command.append(max_sdk)
+
+
+# n
 def sign(unsigned_apk, signed_apk):
     signature = {}
     keystore = ""
@@ -148,28 +174,22 @@ def sign(unsigned_apk, signed_apk):
         signature = dcc_cfg["signature"]
         keystore = signature["keystore_path"]
 
-    if (
-        signature["v1_enabled"] is False
-        and signature["v2_enabled"] is False
-        and signature["v3_enabled"] is False
-    ):
-        Logger.warning("At least one signing scheme should be enabled")
+    if signature["v1_enabled"] is False and signature["v2_enabled"] is False:
+        Logger.warning("At least one signing scheme should be enabled from v1 & v2")
         move_unsigned(unsigned_apk, signed_apk)
         return
 
-    if not os.path.exists(keystore) and not os.path.exists(os.path.join(keystore)):
-        Logger.error("KeyStore not found in defined path, Skipping")
+    if not os.path.exists(keystore) or not os.path.isfile(keystore):
+        Logger.error("KeyStore not found in defined path or not recognized as a file")
         move_unsigned(unsigned_apk, signed_apk)
         return
-
-    if not os.path.exists(keystore):
-        keystore = os.path.join(keystore)
 
     command = [
         "java",
         "-jar",
         SIGNJAR,
         "sign",
+        "--verbose",
         "--in",
         unsigned_apk,
         "--out",
@@ -185,20 +205,32 @@ def sign(unsigned_apk, signed_apk):
     ]
 
     if signature["v1_enabled"] is True:
+        change_min_sdk(command, "21")
+        change_max_sdk(command, "23")
         command.append("--v1-signer-name")
         command.append("ANDROID")
         command.append("--v1-signing-enabled")
 
     if signature["v2_enabled"] is True:
+        change_min_sdk(command, "24", False)
+        change_max_sdk(command, "26")
         command.append("--v2-signing-enabled")
 
     if signature["v3_enabled"] is True:
+        change_min_sdk(command, "28", False)
+        change_max_sdk(command, "29")
         command.append("--v3-signing-enabled")
 
-    check_call(command, stderr=STDOUT)
+    try:
+        check_call(command, stderr=STDOUT)
+    except Exception as ex:
+        Logger.error("Signing %s failed!" % unsigned_apk, exc_info=True)
+        print(f"{str(ex)}")
+        move_unsigned(unsigned_apk, signed_apk)
 
 
 def move_unsigned(unsigned_apk, signed_apk):
+    Logger.info("Moving unsigned apk -> " + signed_apk)
     copy(unsigned_apk, signed_apk)
 
 
