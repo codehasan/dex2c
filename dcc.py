@@ -97,7 +97,6 @@ def clean_tmp_directory():
         Logger.info("Removing .tmp folder")
         rmtree(tmpdir)
     except OSError as e:
-        Logger.info("Removing .tmp folder")
         run(["rd", "/s", "/q", tmpdir], shell=True)
 
 
@@ -114,6 +113,7 @@ class ApkTool(object):
         check_call(
             ["java", "-jar", APKTOOL, "d", "--advanced", "-r", "-f", "-o", outdir, apk],
             stderr=STDOUT,
+            stdout=STDOUT,
         )
         return outdir
 
@@ -132,6 +132,7 @@ class ApkTool(object):
                 decompiled_dir,
             ],
             stderr=STDOUT,
+            stdout=STDOUT,
         )
         return unsiged_apk
 
@@ -232,7 +233,7 @@ def sign(unsigned_apk, signed_apk):
         change_max_sdk(command, "29")
 
     try:
-        check_call(command, stderr=STDOUT)
+        check_call(command, stderr=STDOUT, stdout=STDOUT)
     except Exception as ex:
         Logger.error("Signing %s failed!" % unsigned_apk, exc_info=True)
         print(f"{str(ex)}")
@@ -245,7 +246,11 @@ def move_unsigned(unsigned_apk, signed_apk):
 
 
 def build_project(project_dir, num_processes=0):
-    check_call([NDKBUILD, "-j%d" % cpu_count(), "-C", project_dir], stderr=STDOUT)
+    check_call(
+        [NDKBUILD, "-j%d" % cpu_count(), "-C", project_dir],
+        stderr=STDOUT,
+        stdout=STDOUT,
+    )
 
 
 def auto_vm(filename):
@@ -837,6 +842,7 @@ def dcc_main(
                         custom_loader,
                     ],
                     stderr=STDOUT,
+                    stdout=STDOUT,
                 )
             except Exception as e:
                 Logger.error(f"Error: {e.returncode} - {e.output}", exec_info=True)
