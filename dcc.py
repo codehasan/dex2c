@@ -7,8 +7,8 @@ import sys
 import json
 import io
 import zipfile
-import shutil
 
+from os import path
 from logging import getLogger, INFO
 from androguard.core import androconf
 from androguard.core.analysis import analysis
@@ -53,7 +53,7 @@ def cpu_count():
 # n
 def create_tmp_directory():
     Logger.info("Creating .tmp folder")
-    if not os.path.exists(".tmp"):
+    if not path.exists(".tmp"):
         os.mkdir(".tmp")
 
 
@@ -67,11 +67,11 @@ def get_random_str(length=8):
 # n
 def make_temp_dir(prefix="dcc"):
     random_str = get_random_str()
-    tmp = ".tmp/" + prefix + random_str
+    tmp = path.join(".tmp", prefix + random_str)
 
-    while os.path.exists(tmp) and os.path.isdir(tmp):
+    while path.exists(tmp) and path.isdir(tmp):
         random_str = get_random_str()
-        tmp = ".tmp/" + prefix + random_str
+        tmp = path.join(".tmp", prefix + random_str)
     os.mkdir(tmp)
 
     return tmp
@@ -80,11 +80,11 @@ def make_temp_dir(prefix="dcc"):
 # n
 def make_temp_file(suffix=""):
     random_str = get_random_str()
-    tmp = ".tmp/" + random_str + suffix
+    tmp = path.join(".tmp", random_str + suffix)
 
-    while os.path.exists(tmp) and os.path.isfile(tmp):
+    while path.exists(tmp) and path.isfile(tmp):
         random_str = get_random_str()
-        tmp = ".tmp/" + random_str + suffix
+        tmp = path.join(".tmp", random_str + suffix)
     open(tmp, "w")
 
     return tmp
@@ -113,7 +113,6 @@ class ApkTool(object):
         check_call(
             ["java", "-jar", APKTOOL, "d", "--advanced", "-r", "-f", "-o", outdir, apk],
             stderr=STDOUT,
-            stdout=STDOUT,
         )
         return outdir
 
@@ -132,7 +131,6 @@ class ApkTool(object):
                 decompiled_dir,
             ],
             stderr=STDOUT,
-            stdout=STDOUT,
         )
         return unsiged_apk
 
@@ -184,7 +182,7 @@ def sign(unsigned_apk, signed_apk):
         move_unsigned(unsigned_apk, signed_apk)
         return
 
-    if not os.path.exists(keystore) or not os.path.isfile(keystore):
+    if not path.exists(keystore) or not path.isfile(keystore):
         Logger.error("KeyStore not found in defined path or not recognized as a file")
         move_unsigned(unsigned_apk, signed_apk)
         return
@@ -194,7 +192,6 @@ def sign(unsigned_apk, signed_apk):
         "-jar",
         SIGNJAR,
         "sign",
-        "--verbose",
         "--in",
         unsigned_apk,
         "--out",
@@ -233,7 +230,7 @@ def sign(unsigned_apk, signed_apk):
         change_max_sdk(command, "29")
 
     try:
-        check_call(command, stderr=STDOUT, stdout=STDOUT)
+        check_call(command, stderr=STDOUT)
     except Exception as ex:
         Logger.error("Signing %s failed!" % unsigned_apk, exc_info=True)
         print(f"{str(ex)}")
@@ -246,11 +243,7 @@ def move_unsigned(unsigned_apk, signed_apk):
 
 
 def build_project(project_dir, num_processes=0):
-    check_call(
-        [NDKBUILD, "-j%d" % cpu_count(), "-C", project_dir],
-        stderr=STDOUT,
-        stdout=STDOUT,
-    )
+    check_call([NDKBUILD, "-j%d" % cpu_count(), "-C", project_dir], stderr=STDOUT)
 
 
 def auto_vm(filename):
@@ -289,7 +282,7 @@ class MethodFilter(object):
         self._init_annotation_methods(vm)
 
     def _load_filter_configure(self, configure):
-        if not os.path.exists(configure):
+        if not path.exists(configure):
             return
 
         with open(configure) as fp:
@@ -410,22 +403,22 @@ class MethodFilter(object):
 
 
 def copy_compiled_libs(project_dir, decompiled_dir):
-    compiled_libs_dir = os.path.join(project_dir, "libs")
-    decompiled_libs_dir = os.path.join(decompiled_dir, "lib")
-    if not os.path.exists(compiled_libs_dir):
+    compiled_libs_dir = path.join(project_dir, "libs")
+    decompiled_libs_dir = path.join(decompiled_dir, "lib")
+    if not path.exists(compiled_libs_dir):
         return
-    if not os.path.exists(decompiled_libs_dir):
+    if not path.exists(decompiled_libs_dir):
         copytree(compiled_libs_dir, decompiled_libs_dir)
         return
 
     for abi in os.listdir(decompiled_libs_dir):
-        dst = os.path.join(decompiled_libs_dir, abi)
-        src = os.path.join(compiled_libs_dir, abi)
-        if not os.path.exists(src) and abi == "armeabi":
-            src = os.path.join(compiled_libs_dir, "armeabi-v7a")
+        dst = path.join(decompiled_libs_dir, abi)
+        src = path.join(compiled_libs_dir, abi)
+        if not path.exists(src) and abi == "armeabi":
+            src = path.join(compiled_libs_dir, "armeabi-v7a")
             Logger.warning("Use armeabi-v7a for armeabi")
 
-        if not os.path.exists(src):
+        if not path.exists(src):
             if IGNORE_APP_LIB_ABIS:
                 continue
             else:
@@ -440,7 +433,7 @@ def copy_compiled_libs(project_dir, decompiled_dir):
                     local_module_value = local_module_value.strip()
                     break
 
-        libnc = os.path.join(src, "lib" + local_module_value + ".so")
+        libnc = path.join(src, "lib" + local_module_value + ".so")
         copy(libnc, dst)
 
 
@@ -511,8 +504,8 @@ def native_compiled_dexes(decompiled_dir, compiled_methods):
         for method_triple in compiled_methods.keys():
             cls_name, name, proto = method_triple
             cls_name = cls_name[1:-1]  # strip L;
-            smali_path = os.path.join(decompiled_dir, classes, cls_name) + ".smali"
-            if os.path.exists(smali_path):
+            smali_path = path.join(decompiled_dir, classes, cls_name) + ".smali"
+            if path.exists(smali_path):
                 todo.append(smali_path)
 
     for smali_path in todo:
@@ -520,14 +513,14 @@ def native_compiled_dexes(decompiled_dir, compiled_methods):
 
 
 def write_compiled_methods(project_dir, compiled_methods):
-    source_dir = os.path.join(project_dir, "jni", "nc")
-    if not os.path.exists(source_dir):
+    source_dir = path.join(project_dir, "jni", "nc")
+    if not path.exists(source_dir):
         os.makedirs(source_dir)
 
     for method_triple, code in compiled_methods.items():
         full_name = JniLongName(*method_triple)
-        filepath = os.path.join(source_dir, full_name) + ".cpp"
-        if os.path.exists(filepath):
+        filepath = path.join(source_dir, full_name) + ".cpp"
+        if path.exists(filepath):
             Logger.warning("Overwrite file %s %s" % (filepath, method_triple))
 
         try:
@@ -536,7 +529,7 @@ def write_compiled_methods(project_dir, compiled_methods):
         except Exception as e:
             print(f"{str(e)}\n")
 
-    with open(os.path.join(source_dir, "compiled_methods.txt"), "w") as fp:
+    with open(path.join(source_dir, "compiled_methods.txt"), "w") as fp:
         fp.write("\n".join(list(map("".join, compiled_methods.keys()))))
 
 
@@ -618,9 +611,9 @@ def get_application_name_from_manifest(apk_file):
 def get_smali_folders(decompiled_dir):
     folders = os.listdir(decompiled_dir)
     folders = [
-        f
-        for f in folders
-        if os.path.isdir(decompiled_dir + "/" + f) and f.startswith("smali")
+        folder
+        for folder in folders
+        if path.isdir(path.join(decompiled_dir, folder)) and folder.startswith("smali")
     ]
     return folders
 
@@ -628,12 +621,12 @@ def get_smali_folders(decompiled_dir):
 # n
 def get_application_class_file(decompiled_dir, smali_folders, application_name):
     if not application_name == "":
-        fileName = application_name.replace(".", "/") + ".smali"
+        fileName = application_name.replace(".", os.sep) + ".smali"
 
         for smali_folder in smali_folders:
-            filePath = decompiled_dir + "/" + smali_folder + "/" + fileName
+            filePath = path.join(decompiled_dir, smali_folder, fileName)
 
-            if os.path.exists(filePath):
+            if path.exists(filePath):
                 return filePath
 
     return ""
@@ -643,7 +636,7 @@ def get_application_class_file(decompiled_dir, smali_folders, application_name):
 def backup_jni_project_folder():
     Logger.info("Backing up jni folder")
 
-    src_path = "project/jni"
+    src_path = path.join("project", "jni")
     dest_path = make_temp_dir("jni-")
 
     copytree(src_path, dest_path, dirs_exist_ok=True)
@@ -654,9 +647,9 @@ def backup_jni_project_folder():
 def restore_jni_project_folder(src_path):
     Logger.info("Restoring jni folder")
 
-    dest_path = "project/jni"
+    dest_path = path.join("project", "jni")
 
-    if os.path.exists(dest_path) and os.path.isdir(dest_path):
+    if path.exists(dest_path) and path.isdir(dest_path):
         rmtree(dest_path)
 
     copytree(src_path, dest_path)
@@ -676,6 +669,9 @@ def adjust_application_mk(apkfile):
         for file_name in zip_file.namelist():
             if file_name.startswith("lib/"):
                 abi_name = file_name.split("/")[1].strip()
+
+                if len(file_name.split("/")) <= 2:
+                    continue
 
                 if abi_name in supported_abis:
                     available_abis.add(abi_name)
@@ -721,7 +717,7 @@ def dcc_main(
     project_dir=None,
     source_archive="project-source.zip",
 ):
-    if not os.path.exists(apkfile):
+    if not path.exists(apkfile):
         Logger.error("Input apk file %s does not exist", apkfile)
         return
 
@@ -767,7 +763,7 @@ def dcc_main(
         return
 
     if project_dir:
-        if not os.path.exists(project_dir):
+        if not path.exists(project_dir):
             copytree("project", project_dir)
         write_compiled_methods(project_dir, compiled_methods)
     else:
@@ -838,11 +834,10 @@ def dcc_main(
                         "java",
                         "-jar",
                         MANIFEST_EDITOR,
-                        decompiled_dir + "/AndroidManifest.xml",
+                        path.join(decompiled_dir, "AndroidManifest.xml"),
                         custom_loader,
                     ],
                     stderr=STDOUT,
-                    stdout=STDOUT,
                 )
             except Exception as e:
                 Logger.error(f"Error: {e.returncode} - {e.output}", exec_info=True)
@@ -851,6 +846,17 @@ def dcc_main(
                 "\nApplication class from AndroidManifest.xml, \033[32m"
                 + application_class_name
                 + "\033[0m\n"
+            )
+
+            check_call(
+                [
+                    "java",
+                    "-jar",
+                    MANIFEST_EDITOR,
+                    path.join(decompiled_dir, "AndroidManifest.xml"),
+                    application_class_name,
+                ],
+                stderr=STDOUT,
             )
 
             line_to_insert = (
@@ -896,23 +902,20 @@ def dcc_main(
                 file.writelines(content)
 
         if custom_loader.rfind(".") > -1:
-            loaderDir = (
-                decompiled_dir
-                + "/"
-                + smali_folders[-1]
-                + "/"
-                + custom_loader[0 : custom_loader.rfind(".") : 1].replace(".", "/")
+            loaderDir = path.join(
+                decompiled_dir,
+                smali_folders[-1],
+                custom_loader[0 : custom_loader.rfind(".")].replace(".", os.sep),
             )
             os.makedirs(loaderDir)
 
         copy(
             temp_loader,
-            decompiled_dir
-            + "/"
-            + smali_folders[-1]
-            + "/"
-            + custom_loader.replace(".", "/")
-            + ".smali",
+            path.join(
+                decompiled_dir,
+                smali_folders[-1],
+                custom_loader.replace(".", os.sep) + ".smali",
+            ),
         )
         unsigned_apk = ApkTool.compile(decompiled_dir)
         sign(unsigned_apk, outapk)
@@ -977,17 +980,17 @@ if __name__ == "__main__":
     with open("dcc.cfg") as fp:
         dcc_cfg = json.load(fp)
 
-    if "ndk_dir" in dcc_cfg and os.path.exists(dcc_cfg["ndk_dir"]):
+    if "ndk_dir" in dcc_cfg and path.exists(dcc_cfg["ndk_dir"]):
         ndk_dir = dcc_cfg["ndk_dir"]
         if is_windows():
-            NDKBUILD = os.path.join(ndk_dir, "ndk-build.cmd")
+            NDKBUILD = path.join(ndk_dir, "ndk-build.cmd")
         else:
-            NDKBUILD = os.path.join(ndk_dir, "ndk-build")
+            NDKBUILD = path.join(ndk_dir, "ndk-build")
 
-        if not os.path.exists(NDKBUILD):
+        if not path.exists(NDKBUILD):
             raise Exception("Invalid ndk_dir path, file not found at " + NDKBUILD)
 
-    if "apktool" in dcc_cfg and os.path.exists(dcc_cfg["apktool"]):
+    if "apktool" in dcc_cfg and path.exists(dcc_cfg["apktool"]):
         APKTOOL = dcc_cfg["apktool"]
 
     show_logging(level=INFO)
