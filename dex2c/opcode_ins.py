@@ -342,7 +342,7 @@ def conststring(ins, irbuilder):
     logger.debug('ConstString : %s', ins.get_output())
     val_a = irbuilder.write_variable(ins.AA)
     val_a.refine_type('Ljava/lang/String;')
-    return LoadConstant(val_a, Constant(ins.get_raw_string(), 'Ljava/lang/String;'))
+    return LoadConstant(val_a, Constant(ins.get_raw_string(), 'Ljava/lang/String;'), irbuilder.obfus)
 
 
 # const-string/jumbo vAA ( 8b )
@@ -350,7 +350,7 @@ def conststringjumbo(ins, irbuilder):
     logger.debug('ConstStringJumbo %s', ins.get_output())
     val_a = irbuilder.write_variable(ins.AA)
     val_a.refine_type('Ljava/lang/String;')
-    return LoadConstant(val_a, Constant(ins.get_raw_string(), 'Ljava/lang/String;'))
+    return LoadConstant(val_a, Constant(ins.get_raw_string(), 'Ljava/lang/String;'), irbuilder.obfus)
 
 
 # const-class vAA, type@BBBB ( 8b )

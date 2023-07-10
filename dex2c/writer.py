@@ -229,7 +229,7 @@ class Writer(object):
         for ins in ret.get_ins():
             self.visit_ins(ins)
 
-    def visit_load_constant(self, ins):
+    def visit_load_constant(self, ins, obfus=False):
         val = ins.get_value()
         atype = val.get_type()
         self.write_trace(ins)
@@ -241,8 +241,9 @@ class Writer(object):
         elif atype == 'D':
             self.write('v%s = d2c_bitcast_to_double(%r);\n' % (self.ra(val), cst))
         elif cst_type == 'Ljava/lang/String;':
+            c = 'v%s = (%s) env->NewStringUTF(AY_OBFUSCATE("%s"));\n' if obfus else 'v%s = (%s) env->NewStringUTF("%s");\n'
             self.write(
-                'v%s = (%s) env->NewStringUTF("%s");\n' % (self.ra(val), get_native_type(atype), cst))
+                c % (self.ra(val), get_native_type(atype), cst))
         elif cst_type == 'Ljava/lang/Class;':
             self.write('{\n')
             self.write_define_ex_handle(ins)

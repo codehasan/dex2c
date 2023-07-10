@@ -6,6 +6,7 @@
 #include <stdint.h>
 #include <stdio.h>
 #include <android/log.h>
+#include <obfuscate.h>
 
 //#define DEBUG
 
