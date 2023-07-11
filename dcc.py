@@ -111,18 +111,9 @@ class ApkTool(object):
     def decompile(apk):
         outdir = make_temp_dir("dcc-apktool-")
         check_call(
-            ["java", "-jar", APKTOOL, "d", "--advanced", "-r", "-f", "-o", outdir, apk],
+            ["java", "-jar", APKTOOL, "d", "--advanced", "-r", "--only-main-classes", "-f", "-o", outdir, apk],
             stderr=STDOUT,
         )
-
-        subfolders = [f.path for f in os.scandir(outdir) if f.is_dir()]
-
-        for folder in subfolders:
-            folder_name = folder[folder.rfind("/") + 1 :]
-
-            if folder_name.startswith("smali_assets"):
-                rmtree(folder)
-
         return outdir
 
     @staticmethod
