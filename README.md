@@ -183,6 +183,7 @@ Open `project/jni/Android.mk` file in cloned directory. You will find a variable
     - [x] --skip-synthetic
     - [x] --custom-loader
     - [x] --force-keep-libs
+    - [x] --obfuscate
 
 See the [open issues](https://github.com/ratsan/dex2c/issues) for a full list of proposed features and known issues.
 
