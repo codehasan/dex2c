@@ -2,6 +2,19 @@
 
 <div align="center">
   <h1 align="center">𝐃𝐞𝐱𝟐𝐂</h1>
+
+
+
+
+[![Stars](https://img.shields.io/github/stars/ratsan/Dex2C?color=yellow)](https://github.com/TeamUltroid/Ultroid/stargazers)
+[![Python](https://img.shields.io/badge/Python-v3.10.3-blue)](https://www.python.org/)
+[![Forks](https://img.shields.io/github/forks/ratsan/Dex2C?color=orange)](https://github.com/ratsan/Dex2C/fork)
+[![Size](https://img.shields.io/github/repo-size/ratsan/Dex2C?color=green)](https://github.com/ratsan/Dex2C/)
+[![Contributors](https://img.shields.io/github/contributors/ratsan/Dex2C?color=green)](https://github.com/ratsan/Dex2C/graphs/contributors)
+[![License](https://img.shields.io/badge/License-Apache-blue)](./LICENSE)
+
+
+  
   <p align="center">
     Method based AOT compiler that can wrap dalvik bytecode with jni native code.
   </p>
