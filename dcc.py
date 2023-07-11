@@ -539,7 +539,7 @@ def archive_compiled_code(project_dir):
     return outfile
 
 
-def compile_dex(apkfile, filtercfg):
+def compile_dex(apkfile, filtercfg, obfus):
     dex_files = auto_vm(apkfile)
     dex_analysis = analysis.Analysis()
 
@@ -552,7 +552,7 @@ def compile_dex(apkfile, filtercfg):
     for dex in dex_files:
         method_filter = MethodFilter(filtercfg, dex)
 
-        compiler = Dex2C(dex, dex_analysis)
+        compiler = Dex2C(dex, dex_analysis, obfus)
 
         compiled_method_code = {}
         errors = []
@@ -710,6 +710,7 @@ def adjust_application_mk(apkfile):
 # n
 def dcc_main(
     apkfile,
+    obfus,
     filtercfg,
     custom_loader,
     outapk,
@@ -751,7 +752,7 @@ def dcc_main(
         adjust_application_mk(apkfile)
 
     # Convert dex to cpp
-    compiled_methods, errors = compile_dex(apkfile, filtercfg)
+    compiled_methods, errors = compile_dex(apkfile, filtercfg, obfus)
 
     if errors:
         Logger.warning("================================")
@@ -928,6 +929,9 @@ if __name__ == "__main__":
 
     parser.add_argument("-a", "--input", nargs="?", help="Input apk file path")
     parser.add_argument("-o", "--out", nargs="?", help="Output apk file path")
+    parser.add_argument("-p", "--obfuscate", action="store_true", default=False,
+        help="Obfuscate string constants.",
+    )
     parser.add_argument(
         "--filter", default="filter.txt", help="Method filters configuration file."
     )
@@ -964,6 +968,7 @@ if __name__ == "__main__":
     args = vars(parser.parse_args())
     input_apk = args["input"]
     out_apk = args["out"]
+    obfus = args["obfuscate"]
     filtercfg = args["filter"]
     custom_loader = args["custom_loader"]
     SKIP_SYNTHETIC_METHODS = args["skip_synthetic"]
@@ -1005,6 +1010,7 @@ if __name__ == "__main__":
     try:
         dcc_main(
             input_apk,
+            obfus,
             filtercfg,
             custom_loader,
             out_apk,

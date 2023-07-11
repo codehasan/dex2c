@@ -104,7 +104,7 @@ class IrMethod(object):
 
 
 class IrBuilder(object):
-    def __init__(self, methanalysis):
+    def __init__(self, methanalysis, obfus):
         method = methanalysis.get_method()
         self.method = method
         self.irmethod = None
@@ -127,6 +127,8 @@ class IrBuilder(object):
         self.curret_block = None
 
         self.var_versions = defaultdict(int)
+        
+        self.obfus = obfus
 
         code = self.method.get_code()
         if code:
@@ -552,13 +554,14 @@ class DvMachine(object):
 
 
 class Dex2C:
-    def __init__(self, vm, vmx):
+    def __init__(self, vm, vmx, obfus):
         self.vm = vm
         self.vmx = vmx
+        self.obfus = obfus
 
     def get_source_method(self, m):
         mx = self.vmx.get_method(m)
-        z = IrBuilder(mx)
+        z = IrBuilder(mx, self.obfus)
         irmethod = z.process()
         if irmethod:
             return irmethod.get_source()

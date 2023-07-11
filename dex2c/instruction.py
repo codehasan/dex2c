@@ -371,12 +371,13 @@ class Instruction(object):
 
 
 class LoadConstant(Instruction):
-    def __init__(self, value, cst):
+    def __init__(self, value, cst, obfus=False):
         super(LoadConstant, self).__init__()
         self.value = value
         self.value.refine_type(cst.get_type())
         self.value.is_const = True
         self.operands.append(cst)
+        self.obfus = obfus
 
     @property
     def constant(self):
@@ -396,7 +397,7 @@ class LoadConstant(Instruction):
         return False
 
     def visit(self, visitor):
-        return visitor.visit_load_constant(self)
+        return visitor.visit_load_constant(self, self.obfus)
 
     def __str__(self):
         return '%s = %s' % (str(self.value), str(self.operands[0]))
