@@ -30,6 +30,8 @@ from shutil import copy, move, make_archive, rmtree, copytree
 
 
 APKTOOL = "tools/apktool.jar"
+APKTOOL2 = 'tools/apktool.bat'
+APKTOOL3 = 'tools/apktool'
 SIGNJAR = "tools/apksigner.jar"
 MANIFEST_EDITOR = "tools/manifest-editor.jar"
 NDKBUILD = "ndk-build"
@@ -110,10 +112,10 @@ class ApkTool(object):
     @staticmethod
     def decompile(apk):
         outdir = make_temp_dir("dcc-apktool-")
-        check_call(
-            ["java", "-jar", APKTOOL, "d", "--advanced", "-r", "--only-main-classes", "-f", "-o", outdir, apk],
-            stderr=STDOUT,
-        )
+        if is_windows():
+            check_call([APKTOOL2, 'd', '-r', '-f', '-o', outdir, apk])
+        else:
+            check_call(['bash', APKTOOL3, 'd', '-r', '-f', '-o', outdir, apk])
         return outdir
 
     @staticmethod
