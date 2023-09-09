@@ -78,10 +78,6 @@ Python 3.8 or higher is required for running this tool. So, make sure your pytho
    ```bash
    cd dex2c
    ```
-3. Download apktool latest version from [bitbucket](https://bitbucket.org/iBotPeaches/apktool/downloads/) and save it in `tools` folder with name `apktool.jar`
-   ```bash
-   wget -O tools/apktool.jar https://bitbucket.org/iBotPeaches/apktool/downloads/apktool_2.8.1.jar
-   ```
 4. <a href="https://developer.android.com/ndk/downloads">Download</a> android NDK for your OS and extract it. Copy the folder path where `ndk-build` executable is located inside the extracted folder and configure `ndk_dir` in `dcc.cfg`
 
 ### Linux
