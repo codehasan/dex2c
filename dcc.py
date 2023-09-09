@@ -29,11 +29,11 @@ from string import ascii_letters, digits
 from shutil import copy, move, make_archive, rmtree, copytree
 
 
-APKTOOL = "tools/apktool.jar"
-APKTOOL2 = 'tools/apktool.bat'
-APKTOOL3 = 'tools/apktool'
-SIGNJAR = "tools/apksigner.jar"
-MANIFEST_EDITOR = "tools/manifest-editor.jar"
+APKTOOL = "apktool.jar"
+APKTOOL2 = 'apktool.bat'
+APKTOOL3 = 'apktool'
+SIGNJAR = "apksigner.jar"
+MANIFEST_EDITOR = "manifest-editor.jar"
 NDKBUILD = "ndk-build"
 
 SKIP_SYNTHETIC_METHODS = False
