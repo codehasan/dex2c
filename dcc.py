@@ -910,6 +910,10 @@ def dcc_main(
                 smali_folders[-1],
                 custom_loader[0 : custom_loader.rfind(".")].replace(".", os.sep),
             )
+            try:
+                rmtree(loaderDir)
+            except OSError as e:
+                run(["rd", "/s", "/q", loaderDir], shell=True)
             os.makedirs(loaderDir)
 
         copy(
