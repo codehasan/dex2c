@@ -44,32 +44,23 @@ if [[ $ndk = "" ]]; then
   echo -e "\e[91mndk version not provided terminating"
   exit 1
 elif [[ $ndk = "1" ]]; then
-  ndk_version = "17.2.4988734"
-  exit 2
+  ndk_version="17.2.4988734"
 elif [[ $ndk = "2" ]]; then
-  ndk_version = "18.1.5063045"
-  exit 2
+  ndk_version="18.1.5063045"
 elif [[ $ndk = "3" ]]; then
-  ndk_version = "19.2.5345600"
-  exit 2
+  ndk_version="19.2.5345600"
 elif [[ $ndk = "4" ]]; then
-  ndk_version = "20.1.5948944"
-  exit 
+  ndk_version="20.1.5948944"
 elif [[ $ndk = "5" ]]; then
-  ndk_version = "21.4.7075529"
-  exit 2
+  ndk_version="21.4.7075529"
 elif [[ $ndk = "6" ]]; then
-  ndk_version = "22.1.7171670"
-  exit 2
+  ndk_version="22.1.7171670"
 elif [[ $ndk = "7" ]]; then
-  ndk_version = "23.2.8568313"
-  exit 2
+  ndk_version="23.2.8568313"
 elif [[ $ndk = "8" ]]; then
-  ndk_version = "24.0.8215888"
-  exit 2
+  ndk_version="24.0.8215888"
 elif [[ $ndk = "9" ]]; then
-  ndk_version = "26.1.10909125"
-  exit 2
+  ndk_version="26.1.10909125"
 elif [[ $ndk = "10" ]]; then
   echo -e "\e[91mYou didn't Installed any ndk terminating..."
   exit 1
@@ -103,11 +94,13 @@ else
 fi
 
 if [[ -f "$HOME/dex2c/tools/apktool.jar" ]]; then
-  echo "apktool.jar is already at $HOME/dex2c/tools/apktool.jar"
+  rm $HOME/dex2c/tools/apktool.jar
+  cp $PREFIX/bin/apktool.jar $HOME/dex2c/tools/apktool.jar
 else
 sh -c 'wget https://bitbucket.org/iBotPeaches/apktool/downloads/apktool_2.9.1.jar -O $HOME/dex2c/tools/apktool.jar'
 fi
 
+cd ~/dex2c
 python3 -m pip install -U -r requirements.txt || exit 2
 
 if [[ -f ".bashrc" ]]; then
