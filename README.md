@@ -54,7 +54,7 @@
 
 
 <!-- ABOUT THE PROJECT -->
-## About the project
+# About the project
 
 This project is a forked version of [amimo/dcc](https://github.com/amimo/dcc), which aims to make it easy for everyone to use this tool. We automated plenty of process that you had to do manually in original dcc. Moreover, we always try to add new features to make this tool more usable in real world applications.
 Check out <a href="#roadmap">Roadmap</a> to know about the changes we made and also the changes we are planning to make in the feature.
@@ -67,7 +67,7 @@ Check out <a href="#roadmap">Roadmap</a> to know about the changes we made and a
 
 
 <!-- GETTING STARTED -->
-## Installation
+# Installation
 
 Python 3.8 or higher is required for running this tool. So, make sure your python is up-to-date.
 
@@ -87,6 +87,8 @@ Python 3.8 or higher is required for running this tool. So, make sure your pytho
 
 ### Linux
 
+![Linux](https://img.shields.io/badge/Linux-FCC624?style=for-the-badge&logo=linux&logoColor=black)
+
 1. Install required dependencies.
    ```bash
    pip3 install -r requirements.txt
@@ -98,6 +100,8 @@ Python 3.8 or higher is required for running this tool. So, make sure your pytho
 
 ### Windows
 
+![Windows](https://img.shields.io/badge/Windows-0078D6?style=for-the-badge&logo=windows&logoColor=white)
+
 1. Install required dependencies.
    ```bash
    pip3 install -r requirements.txt
@@ -105,6 +109,8 @@ Python 3.8 or higher is required for running this tool. So, make sure your pytho
 2. Install JRE/JDK from <a href="https://www.oracle.com/java/technologies/javase/jdk11-archive-downloads.html">oracle</a> if you don't have it installed. Search in google, how to install JDK in windows if you need more guidance on this topic. Recommended jdk version is 11.
 
 ### Termux
+
+![Android](https://img.shields.io/badge/Android-3DDC84?style=for-the-badge&logo=android&logoColor=white)
 
 One Step Installation: Run Below Command
    ```bash
