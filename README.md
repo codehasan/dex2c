@@ -34,6 +34,7 @@
       <ul>
         <li><a href="#linux">Linux</a></li>
         <li><a href="#windows">Windows</a></li>
+        <li><a href="#termux">Termux</a></li>
       </ul>
     </li>
     <li>
@@ -80,7 +81,7 @@ Python 3.8 or higher is required for running this tool. So, make sure your pytho
    ```
 3. Download apktool latest version from [bitbucket](https://bitbucket.org/iBotPeaches/apktool/downloads/) and save it in `tools` folder with name `apktool.jar`
    ```bash
-   wget -O tools/apktool.jar https://bitbucket.org/iBotPeaches/apktool/downloads/apktool_2.7.0.jar
+   wget -O tools/apktool.jar https://bitbucket.org/iBotPeaches/apktool/downloads/apktool_2.9.3.jar
    ```
 4. <a href="https://developer.android.com/ndk/downloads">Download</a> android NDK for your OS and extract it. Copy the folder path where `ndk-build` executable is located inside the extracted folder and configure `ndk_dir` in `dcc.cfg`
 
@@ -103,6 +104,12 @@ Python 3.8 or higher is required for running this tool. So, make sure your pytho
    ```
 2. Install JRE/JDK from <a href="https://www.oracle.com/java/technologies/javase/jdk11-archive-downloads.html">oracle</a> if you don't have it installed. Search in google, how to install JDK in windows if you need more guidance on this topic. Recommended jdk version is 11.
 
+### Termux
+
+One Step Installation: Run Below Command
+   ```bash
+   wget -O termux_install.sh https://raw.githubusercontent.com/ratsan/dex2c/termux_install.sh ; chmod +x termux_install.sh ; ./termux_install.sh
+   ```
 
 
 <!-- USAGE EXAMPLES -->
