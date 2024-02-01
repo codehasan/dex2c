@@ -110,7 +110,7 @@ Python 3.8 or higher is required for running this tool. So, make sure your pytho
 
 ### Filters
 
-Add all your filters in `filter.txt` file - one rule each line. Filters are are made using regex patterns. There are two types of filters avilable in dcc - whitelist, blacklist. Use them according to your need.
+Add all your filters in `filter.txt` file - one rule each line. Filters are made using regex patterns. There are two types of filters avilable in dcc - whitelist, blacklist. Use them according to your need.
 
 #### WhiteList
 
