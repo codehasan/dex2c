@@ -6,11 +6,11 @@
 
 
 
-[![Stars](https://img.shields.io/github/stars/ratsan/Dex2C?color=yellow)](https://github.com/TeamUltroid/Ultroid/stargazers)
+[![Stars](https://img.shields.io/github/stars/codehasan/Dex2C?color=yellow)](https://github.com/TeamUltroid/Ultroid/stargazers)
 [![Python](https://img.shields.io/badge/Python-v3.10.3-blue)](https://www.python.org/)
-[![Forks](https://img.shields.io/github/forks/ratsan/Dex2C?color=orange)](https://github.com/ratsan/Dex2C/fork)
-[![Size](https://img.shields.io/github/repo-size/ratsan/Dex2C?color=green)](https://github.com/ratsan/Dex2C/)
-[![Contributors](https://img.shields.io/github/contributors/ratsan/Dex2C?color=green)](https://github.com/ratsan/Dex2C/graphs/contributors)
+[![Forks](https://img.shields.io/github/forks/codehasan/Dex2C?color=orange)](https://github.com/codehasan/Dex2C/fork)
+[![Size](https://img.shields.io/github/repo-size/codehasan/Dex2C?color=green)](https://github.com/codehasan/Dex2C/)
+[![Contributors](https://img.shields.io/github/contributors/codehasan/Dex2C?color=green)](https://github.com/codehasan/Dex2C/graphs/contributors)
 [![License](https://img.shields.io/badge/License-Apache-blue)](./LICENSE)
 
 
@@ -34,7 +34,7 @@
       <ul>
         <li><a href="#linux">Linux</a></li>
         <li><a href="#windows">Windows</a></li>
-        <li><a href="#termux">Termux</a></li>
+        <li><a href="#termux">Android (Termux)</a></li>
       </ul>
     </li>
     <li>
@@ -73,7 +73,7 @@ Python 3.8 or higher is required for running this tool. So, make sure your pytho
 
 1. Clone the repo.
    ```bash
-   git clone https://github.com/ratsan/dex2c
+   git clone https://github.com/codehasan/dex2c
    ```
 2. Open the cloned directory.
    ```bash
@@ -108,7 +108,7 @@ Python 3.8 or higher is required for running this tool. So, make sure your pytho
 
 One Step Installation: Run Below Command
    ```bash
-   wget -O termux_install.sh https://raw.githubusercontent.com/ratsan/dex2c/termux_install.sh ; chmod +x termux_install.sh ; ./termux_install.sh
+   wget -O termux_install.sh https://raw.githubusercontent.com/codehasan/dex2c/termux_install.sh ; chmod +x termux_install.sh ; ./termux_install.sh
    ```
 
 
@@ -205,7 +205,7 @@ Open `project/jni/Android.mk` file in cloned directory. You will find a variable
     - [x] --force-keep-libs
     - [x] --obfuscate
 
-See the [open issues](https://github.com/ratsan/dex2c/issues) for a full list of proposed features and known issues.
+See the [open issues](https://github.com/codehasan/dex2c/issues) for a full list of proposed features and known issues.
 
 
 
