@@ -1,22 +1,35 @@
 if ! command -v termux-setup-storage; then
-  echo -e "\e[92mThis script can be executed only on Termux"
+  echo "This script can be executed only on Termux"
   exit 1
 fi
 
 termux-setup-storage
 
+cd $HOME
+
 pkg update
 pkg upgrade -y
-echo -e "\e[32mBasic Requirements Setup...\e[39m"
+pkg i -y ncurses-utils
+
+green="$(tput setaf 2)"
+nocolor="$(tput sgr0)"
+red="$(tput setaf 1)"
+blue="$(tput setaf 32)"
+yellow="$(tput setaf 3)"
+note="$(tput setaf 6)"
+
+echo "${green}━━━ Basic Requirements Setup ━━━${nocolor}"
 pkg install python-cryptography
 pkg install -y python git cmake rust golang clang make wget ndk-sysroot zlib libxml2 libxslt pkg-config python-cryptography libjpeg-turbo
 LDFLAGS="-L${PREFIX}/lib/" CFLAGS="-I${PREFIX}/include/" pip install --upgrade wheel pillow
 pip install cython setuptools
 CFLAGS="-Wno-error=incompatible-function-pointer-types -O0" pip install lxml
-echo -e "\e[32mStarting SDK Tools installation...\e[39m"
-if [[ -d "android-sdk" ]]; then
-  echo -e "\e[91m seems like sdk tools already installed, skipping...\e[39m"
-elif [[ -d "androidide-tools" ]]; then
+
+
+echo "${green}━━━ Starting SDK Tools installation ━━━${nocolor}"
+if [ -d "android-sdk" ]; then
+  echo "${red}Seems like sdk tools already installed, skipping...${nocolor}"
+elif [ -d "androidide-tools" ]; then
   rm -rf androidide-tools
   git clone https://github.com/AndroidIDEOfficial/androidide-tools
   cd androidide-tools/scripts
@@ -26,55 +39,52 @@ else
   cd androidide-tools/scripts
   ./idesetup -c
 fi
+
+echo "${yellow}ANDROID SDK TOOLS Successfully Installed!${nocolor}"
+
 cd $HOME
-echo -e "\e[33mANDROID SDK TOOLS Successfully Installed!"
-echo -e "\e[32mStarting NDK installation...\e[39m"
-if [[ -f "ndk-install.sh" ]]; then
+echo
+echo "${green}━━━ Starting NDK installation ━━━${nocolor}"
+echo "Now You'll be asked about which version of NDK to isntall"
+echo "${note}If your Android Version is 9 or above then choose ${red}'9'${nocolor}"
+echo "${note}If your Android Version is below 9 or if you faced issues with '9' (A9 and above users) then choose ${red}'8'${nocolor}"
+echo "${red} If you're choosing other options then you're on your own and experiment yourself ¯⁠\⁠_⁠ಠ⁠_⁠ಠ⁠_⁠/⁠¯${nocolor}"
+if [ -f "ndk-install.sh" ]; then
   chmod +x ndk-install.sh && bash ndk-install.sh
 else
   cd && pkg upgrade && pkg install wget && wget https://github.com/MrIkso/AndroidIDE-NDK/raw/main/ndk-install.sh --no-verbose --show-progress -N && chmod +x ndk-install.sh && bash ndk-install.sh
 fi
 
-echo
-echo -e "\e[34mWhich NDK version you installed ? like which option you just chose during installation \e[39m"
-echo "for ex. if you choose '9) r26b' then put 9 below"
-read -r -p "NDK_VERSION > " ndk
 
-if [[ $ndk = "" ]]; then
-  echo -e "\e[91mndk version not provided terminating"
-  exit 1
-elif [[ $ndk = "1" ]]; then
+if [ -d "$HOME/android-sdk/ndk/17.2.4988734" ]; then
   ndk_version="17.2.4988734"
-elif [[ $ndk = "2" ]]; then
+elif [ -d "$HOME/android-sdk/ndk/18.1.5063045" ]; then
   ndk_version="18.1.5063045"
-elif [[ $ndk = "3" ]]; then
+elif [ -d "$HOME/android-sdk/ndk/19.2.5345600" ]; then
   ndk_version="19.2.5345600"
-elif [[ $ndk = "4" ]]; then
+elif [ -d "$HOME/android-sdk/ndk/20.1.5948944" ]; then
   ndk_version="20.1.5948944"
-elif [[ $ndk = "5" ]]; then
+elif [ -d "$HOME/android-sdk/ndk/21.4.7075529" ]; then
   ndk_version="21.4.7075529"
-elif [[ $ndk = "6" ]]; then
+elif [ -d "$HOME/android-sdk/ndk/22.1.7171670" ]; then
   ndk_version="22.1.7171670"
-elif [[ $ndk = "7" ]]; then
+elif [ -d "$HOME/android-sdk/ndk/23.2.8568313" ]; then
   ndk_version="23.2.8568313"
-elif [[ $ndk = "8" ]]; then
+elif [ -d "$HOME/android-sdk/ndk/24.0.8215888" ]; then
   ndk_version="24.0.8215888"
-elif [[ $ndk = "9" ]]; then
+elif [ -d "$HOME/android-sdk/ndk/26.1.10909125" ]; then
   ndk_version="26.1.10909125"
-elif [[ $ndk = "10" ]]; then
-  echo -e "\e[91mYou didn't Installed any ndk terminating..."
-  exit 1
 else
-  echo -e "\e[91mwrong option provided terminating"
+  echo "${red}You didn't Installed any ndk terminating!"
   exit 1
 fi
-
-echo $ndk_version
+echo "${yellow}ANDROID NDK Successfully Installed!${nocolor}"
 
 cd $HOME
-
-if [[ -f "$PREFIX/bin/apktool.jar" ]]; then
-  echo "apktool is already installed"
+echo
+echo "${green}━━━ Setting up apktool ━━━${nocolor}"
+if [ -f "$PREFIX/bin/apktool.jar" ]; then
+  echo "${blue}apktool is already installed${nocolor}"
 else
   sh -c 'wget https://bitbucket.org/iBotPeaches/apktool/downloads/apktool_2.9.1.jar -O $PREFIX/bin/apktool.jar'
   
@@ -84,16 +94,16 @@ else
 fi
 
 cd $HOME
-if [[ -d "dex2c" ]]; then
+if [ -d "dex2c" ]; then
   cd dex2c
-elif [[ -f "dcc.py" ]] && [[ -d "tools" ]]; then
+elif [ -f "dcc.py" ] && [ -d "tools" ]; then
   :
 else
   git clone https://github.com/ratsan/dex2c || exit 2
   cd dex2c || exit 2
 fi
 
-if [[ -f "$HOME/dex2c/tools/apktool.jar" ]]; then
+if [ -f "$HOME/dex2c/tools/apktool.jar" ]; then
   rm $HOME/dex2c/tools/apktool.jar
   cp $PREFIX/bin/apktool.jar $HOME/dex2c/tools/apktool.jar
 else
@@ -103,7 +113,7 @@ fi
 cd ~/dex2c
 python3 -m pip install -U -r requirements.txt || exit 2
 
-if [[ -f ".bashrc" ]]; then
+if [ -f ".bashrc" ]; then
   cat <<- EOL >> ~/.bashrc
 export ANDROID_HOME=$HOME/android-sdk
 export PATH=$PATH:$HOME/android-sdk/cmdline-tools/latest/bin
@@ -112,7 +122,7 @@ export PATH=$PATH:$HOME/android-sdk/build-tools/34.0.4
 export PATH=$PATH:$HOME/android-sdk/ndk/$ndk_version
 export ANDROID_NDK_ROOT=$HOME/android-sdk/ndk/$ndk_version
 EOL
-elif [[ -f ".zshrc" ]]; then
+elif [ -f ".zshrc" ]; then
   cat <<- EOL >> ~/.zshrc
 export ANDROID_HOME=$HOME/android-sdk
 export PATH=$PATH:$HOME/android-sdk/cmdline-tools/latest/bin
@@ -132,7 +142,22 @@ export ANDROID_NDK_ROOT=$HOME/android-sdk/ndk/$ndk_version
 EOL
 fi
 
+cat > $HOME/dex2c/dcc.cfg << EOL
+{
+    "apktool": "tools/apktool.jar",
+    "ndk_dir": "$HOME/android-sdk/ndk/$ndk_version",
+    "signature": {
+        "keystore_path": "keystore/debug.keystore",
+        "alias": "androiddebugkey",
+        "keystore_pass": "android",
+        "store_pass": "android",
+        "v1_enabled": true,
+        "v2_enabled": true,
+        "v3_enabled": true
+    }
+}
+EOL
 
-echo -e "\e[32m============================"
+echo "${green}============================"
 echo "Great! dex2c installed successfully!"
-echo "============================"
+echo "============================${nocolor}"

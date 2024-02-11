@@ -114,7 +114,7 @@ Python 3.8 or higher is required for running this tool. So, make sure your pytho
 
 One Step Installation: Run Below Command
    ```bash
-   wget -O termux_install.sh https://raw.githubusercontent.com/codehasan/dex2c/termux_install.sh ; chmod +x termux_install.sh ; ./termux_install.sh
+   pkg install wget && wget -O termux_install.sh https://raw.githubusercontent.com/codehasan/dex2c/termux_install.sh && chmod -R +x termux_install.sh && ./termux_install.sh
    ```
 
 
