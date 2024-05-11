@@ -116,6 +116,7 @@ One Step Installation: Run Below Command
    ```bash
    pkg install wget && wget -O termux_install.sh https://raw.githubusercontent.com/codehasan/dex2c/termux_install.sh && chmod -R +x termux_install.sh && ./termux_install.sh
    ```
+> NOTE: Some users have reported about installation errors with latest `clang` on termux, if you happen to face the same issue uncomment the lines stated in `termux_install.sh` and then proceed with the installation.
 
 
 <!-- USAGE EXAMPLES -->
