@@ -250,22 +250,19 @@ def build_project(project_dir, num_processes=0):
 
 def auto_vm(filename):
     ret = androconf.is_android(filename)
+    dex_files = list()
 
     if ret == "APK":
-        dex_files = list()
-
         for dex in apk.APK(filename).get_all_dex():
             dex_files.append(dvm.DalvikVMFormat(dex))
 
-        return dex_files
+    elif ret == "DEX" or ret == "DEY":
+        dex_files.append(dvm.DalvikVMFormat(read(filename)))
 
-    elif ret == "DEX":
-        return list(dvm.DalvikVMFormat(read(filename)))
+    else:
+        raise Exception("Unsupported file %s" % filename)
 
-    elif ret == "DEY":
-        return list(dvm.DalvikVMFormat(read(filename)))
-
-    raise Exception("Unsupported file %s" % filename)
+    return dex_files
 
 
 class MethodFilter(object):
