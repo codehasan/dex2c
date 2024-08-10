@@ -116,7 +116,7 @@ sh -c 'wget https://bitbucket.org/iBotPeaches/apktool/downloads/apktool_2.9.1.ja
 fi
 
 cd ~/dex2c
-python3 -m pip install -U -r requirements.txt || exit 2
+python3 -m pip install -r requirements.txt || exit 2
 
 if [ -f ".bashrc" ]; then
   echo -e "export ANDROID_HOME=$HOME/android-sdk\nexport PATH=\$PATH:$HOME/android-sdk/cmdline-tools/latest/bin\nexport PATH=\$PATH:$HOME/android-sdk/platform-tools\nexport PATH=\$PATH:$HOME/android-sdk/build-tools/34.0.4\nexport PATH=\$PATH:$HOME/android-sdk/ndk/$ndk_version\nexport ANDROID_NDK_ROOT=$HOME/android-sdk/ndk/$ndk_version" >> ~/.bashrc
