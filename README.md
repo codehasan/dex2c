@@ -108,6 +108,7 @@ Python 3.8 or higher is required for running this tool. So, make sure your pytho
    pip3 install -r requirements.txt
    ```
 2. Install JRE/JDK from <a href="https://www.oracle.com/java/technologies/javase/jdk11-archive-downloads.html">oracle</a> if you don't have it installed. Search in Google, how to install JDK in Windows if you need more guidance on this topic. The recommended JDK version is 11.
+3. Make sure you've `zipalign` installed. You'll get it in Android SDK build-tools from <a href="https://developer.android.com/studio/releases/build-tools">here</a>. Add it to your system path.
 
 ### Termux
 
