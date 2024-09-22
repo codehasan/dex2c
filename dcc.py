@@ -2,6 +2,7 @@
 # coding=utf-8
 import argparse
 import os
+import platform
 import re
 import sys
 import json
@@ -164,6 +165,25 @@ def change_max_sdk(command=list(), max_sdk="33", update_existing=True):
 
 
 # n
+def zipalign(input_apk, output_apk):
+    Logger.info(f"Zipaligning {input_apk} -> {output_apk}")
+
+    command = [
+        "zipalign",
+        "-p",
+        "-f",
+        "4",
+        input_apk,
+        output_apk,
+    ]
+
+    try:
+        check_call(command, stderr=STDOUT)
+    except Exception as ex:
+        Logger.error("Zipaligning %s failed!" % input_apk, exc_info=True)
+        print(f"{str(ex)}")
+
+
 def sign(unsigned_apk, signed_apk):
     signature = {}
     keystore = ""
@@ -907,10 +927,14 @@ def dcc_main(
                 smali_folders[-1],
                 custom_loader[0 : custom_loader.rfind(".")].replace(".", os.sep),
             )
-            try:
-                rmtree(loaderDir)
-            except OSError as e:
-                run(["rd", "/s", "/q", loaderDir], shell=True)
+            if path.exists(loaderDir):
+                try:
+                    rmtree(loaderDir)
+                except OSError as e:
+                    if platform.system() == "Windows":
+                        run(["rd", "/s", "/q", loaderDir], shell=True)
+                    else:
+                        run(["rm", "-rf", loaderDir], shell=True)
             os.makedirs(loaderDir)
 
         copy(
@@ -922,7 +946,8 @@ def dcc_main(
             ),
         )
         unsigned_apk = ApkTool.compile(decompiled_dir)
-        sign(unsigned_apk, outapk)
+        zipalign(unsigned_apk, outapk)
+        sign(out_apk, outapk)
 
 
 sys.setrecursionlimit(5000)

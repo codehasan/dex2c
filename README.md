@@ -94,9 +94,9 @@ Python 3.8 or higher is required for running this tool. So, make sure your pytho
    ```bash
    pip3 install -r requirements.txt
    ```
-2. Install JRE/JDK if you don't have it installed. The recommended JDK version is 11.
+2. Install JRE/JDK & zipalign if you don't have it installed. The recommended JDK version is 17.
    ```bash
-   sudo apt-get install openjdk-11-jdk
+   sudo apt-get install openjdk-17-jdk, zipalign
    ```
 
 ### Windows
