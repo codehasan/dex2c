@@ -79,6 +79,8 @@ elif [ -d "$HOME/android-sdk/ndk/24.0.8215888" ]; then
   ndk_version="24.0.8215888"
 elif [ -d "$HOME/android-sdk/ndk/26.1.10909125" ]; then
   ndk_version="26.1.10909125"
+elif [ -d "$HOME/android-sdk/ndk/27.1.12297006" ]; then
+  ndk_version="27.1.12297006"
 else
   echo "${red}You didn't Installed any ndk terminating!"
   exit 1
@@ -91,7 +93,7 @@ echo "${green}━━━ Setting up apktool ━━━${nocolor}"
 if [ -f "$PREFIX/bin/apktool.jar" ]; then
   echo "${blue}apktool is already installed${nocolor}"
 else
-  sh -c 'wget https://bitbucket.org/iBotPeaches/apktool/downloads/apktool_2.9.1.jar -O $PREFIX/bin/apktool.jar'
+  sh -c 'wget https://bitbucket.org/iBotPeaches/apktool/downloads/apktool_2.10.0.jar -O $PREFIX/bin/apktool.jar'
   
   chmod +r $PREFIX/bin/apktool.jar
   
@@ -112,7 +114,7 @@ if [ -f "$HOME/dex2c/tools/apktool.jar" ]; then
   rm $HOME/dex2c/tools/apktool.jar
   cp $PREFIX/bin/apktool.jar $HOME/dex2c/tools/apktool.jar
 else
-sh -c 'wget https://bitbucket.org/iBotPeaches/apktool/downloads/apktool_2.9.1.jar -O $HOME/dex2c/tools/apktool.jar'
+sh -c 'wget https://bitbucket.org/iBotPeaches/apktool/downloads/apktool_2.10.0.jar -O $HOME/dex2c/tools/apktool.jar'
 fi
 
 cd ~/dex2c
