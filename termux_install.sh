@@ -30,7 +30,6 @@ LDFLAGS="-L${PREFIX}/lib/" CFLAGS="-I${PREFIX}/include/" pip install --upgrade w
 pip install cython setuptools
 CFLAGS="-Wno-error=incompatible-function-pointer-types -O0" pip install --upgrade lxml
 
-
 echo "${green}━━━ Starting SDK Tools installation ━━━${nocolor}"
 if [ -d "android-sdk" ]; then
   echo "${red}Seems like sdk tools already installed, skipping...${nocolor}"
@@ -60,6 +59,9 @@ else
   cd && pkg upgrade && pkg install wget && wget https://github.com/MrIkso/AndroidIDE-NDK/raw/main/ndk-install.sh --no-verbose --show-progress -N && chmod +x ndk-install.sh && bash ndk-install.sh
 fi
 
+if [ -f "ndk-install.sh" ]; then
+  rm ndk-install.sh
+fi
 
 if [ -d "$HOME/android-sdk/ndk/17.2.4988734" ]; then
   ndk_version="17.2.4988734"
@@ -94,9 +96,9 @@ if [ -f "$PREFIX/bin/apktool.jar" ]; then
   echo "${blue}apktool is already installed${nocolor}"
 else
   sh -c 'wget https://bitbucket.org/iBotPeaches/apktool/downloads/apktool_2.10.0.jar -O $PREFIX/bin/apktool.jar'
-  
+
   chmod +r $PREFIX/bin/apktool.jar
-  
+
   sh -c 'wget https://raw.githubusercontent.com/iBotPeaches/Apktool/master/scripts/linux/apktool -O $PREFIX/bin/apktool' && chmod +x $PREFIX/bin/apktool || exit 2
 fi
 
@@ -114,7 +116,7 @@ if [ -f "$HOME/dex2c/tools/apktool.jar" ]; then
   rm $HOME/dex2c/tools/apktool.jar
   cp $PREFIX/bin/apktool.jar $HOME/dex2c/tools/apktool.jar
 else
-sh -c 'wget https://bitbucket.org/iBotPeaches/apktool/downloads/apktool_2.10.0.jar -O $HOME/dex2c/tools/apktool.jar'
+  sh -c 'wget https://bitbucket.org/iBotPeaches/apktool/downloads/apktool_2.10.0.jar -O $HOME/dex2c/tools/apktool.jar'
 fi
 
 cd ~/dex2c
