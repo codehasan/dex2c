@@ -795,7 +795,7 @@ class APK(object):
 
         :rtype: a list of str
         """
-        dexre = re.compile("classes(\d*).dex")
+        dexre = re.compile("classes(\\d*).dex")
         return filter(lambda x: dexre.match(x), self.get_files())
 
     def get_all_dex(self):
@@ -813,7 +813,7 @@ class APK(object):
 
         :returns: True if multiple dex found, otherwise False
         """
-        dexre = re.compile("^classes(\d+)?.dex$")
+        dexre = re.compile("^classes(\\d+)?.dex$")
         return len([instance for instance in self.get_files() if dexre.search(instance)]) > 1
 
     def get_elements(self, tag_name, attribute, with_namespace=True):
@@ -1024,8 +1024,8 @@ class APK(object):
 
         This function uses a fallback for attribute searching. It will by default use
         the namespace variant but fall back to the non-namespace variant.
-        Thus specifiying :code:`{"name": "foobar"}` will match on :code:`<bla name="foobar" \>`
-        as well as on :code:`<bla android:name="foobar" \>`.
+        Thus specifiying :code:`{"name": "foobar"}` will match on :code:`<bla name="foobar" \\>`
+        as well as on :code:`<bla android:name="foobar" \\>`.
 
         :param lxml.etree.Element tag: specify the tag element
         :param attribute_filter: specify the attribute filter as dictionary
@@ -1975,7 +1975,7 @@ class APK(object):
 
         :rtype: List of filenames matching a Signature
         """
-        signature_expr = re.compile("^(META-INF/)(.*)(\.RSA|\.EC|\.DSA)$")
+        signature_expr = re.compile("^(META-INF/)(.*)(\\.RSA|\\.EC|\\.DSA)$")
         signatures = []
 
         for i in self.get_files():
@@ -2006,7 +2006,7 @@ class APK(object):
 
         :rtype: list of bytes
         """
-        signature_expr = re.compile("^(META-INF/)(.*)(\.RSA|\.EC|\.DSA)$")
+        signature_expr = re.compile("^(META-INF/)(.*)(\\.RSA|\\.EC|\\.DSA)$")
         signature_datas = []
 
         for i in self.get_files():
