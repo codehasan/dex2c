@@ -31,8 +31,8 @@ from shutil import copy, move, make_archive, rmtree, copytree
 
 
 APKTOOL = "tools/apktool.jar"
-APKTOOL2 = 'tools/apktool.bat'
-APKTOOL3 = 'tools/apktool'
+APKTOOL2 = "tools/apktool.bat"
+APKTOOL3 = "tools/apktool"
 SIGNJAR = "tools/apksigner.jar"
 MANIFEST_EDITOR = "tools/manifest-editor.jar"
 NDKBUILD = "ndk-build"
@@ -114,9 +114,9 @@ class ApkTool(object):
     def decompile(apk):
         outdir = make_temp_dir("dcc-apktool-")
         if is_windows():
-            check_call([APKTOOL2, 'd', '-r', '-f', '-o', outdir, apk])
+            check_call([APKTOOL2, "d", "-r", "-f", "-o", outdir, apk])
         else:
-            check_call(['bash', APKTOOL3, 'd', '-r', '-f', '-o', outdir, apk])
+            check_call(["bash", APKTOOL3, "d", "-r", "-f", "-o", outdir, apk])
         return outdir
 
     @staticmethod
@@ -543,7 +543,7 @@ def write_compiled_methods(project_dir, compiled_methods):
             Logger.warning("Overwrite file %s %s" % (filepath, method_triple))
 
         try:
-            with open(filepath, "w") as fp:
+            with open(filepath, "w", encoding="utf-8") as fp:
                 fp.write('#include "Dex2C.h"\n' + code)
         except Exception as e:
             print(f"{str(e)}\n")
@@ -558,10 +558,11 @@ def archive_compiled_code(project_dir):
     return outfile
 
 
-def compile_dex(apkfile, filtercfg, obfus):
+def compile_dex(apkfile, filtercfg, obfus, dynamic_register):
     dex_files = auto_vm(apkfile)
     dex_analysis = analysis.Analysis()
 
+    X_native_method_prototype = {}
     X_compiled_method_code = {}
     X_errors = []
 
@@ -571,8 +572,9 @@ def compile_dex(apkfile, filtercfg, obfus):
     for dex in dex_files:
         method_filter = MethodFilter(filtercfg, dex)
 
-        compiler = Dex2C(dex, dex_analysis, obfus)
+        compiler = Dex2C(dex, dex_analysis, obfus, dynamic_register)
 
+        native_method_prototype = {}
         compiled_method_code = {}
         errors = []
 
@@ -599,11 +601,13 @@ def compile_dex(apkfile, filtercfg, obfus):
                     X_errors.extend(errors)
                     continue
 
-                if code:
-                    compiled_method_code[method_triple] = code
+                if code[0]:
+                    compiled_method_code[method_triple] = code[0]
+                    native_method_prototype[jni_longname] = code[1]
+                    X_native_method_prototype.update(native_method_prototype)
                     X_compiled_method_code.update(compiled_method_code)
 
-    return X_compiled_method_code, X_errors
+    return X_compiled_method_code, X_native_method_prototype, X_errors
 
 
 def is_apk(name):
@@ -725,6 +729,72 @@ def adjust_application_mk(apkfile):
     else:
         raise Exception(f"{apkfile} is not an apk file")
 
+def write_dummy_dynamic_register(project_dir):
+    source_dir = os.path.join(project_dir, "jni", "nc")
+    if not os.path.exists(source_dir):
+        os.makedirs(source_dir)
+    filepath = os.path.join(source_dir, "DynamicRegister.cpp")
+    with open(filepath, "w", encoding="utf-8") as fp:
+        fp.write(
+            '#include "DynamicRegister.h"\n\nconst char *dynamic_register_compile_methods(JNIEnv *env) { return nullptr; }'
+        )
+
+def write_dynamic_register(project_dir, compiled_methods, method_prototypes):
+    source_dir = os.path.join(project_dir, "jni", "nc")
+    if not os.path.exists(source_dir):
+        os.makedirs(source_dir)
+    export_list = {}
+    # Make export list
+    for method_triple in sorted(compiled_methods.keys()):
+        full_name = JniLongName(*method_triple)
+        if not full_name in method_prototypes:
+            raise Exception("Method %s prototype info could not be found" % full_name)
+        class_path = method_triple[0][1:-1].replace(".", "/")
+        method_name = method_triple[1]
+        method_signature = method_triple[2]
+        method_native_name = full_name
+        method_native_prototype = method_prototypes[full_name]
+        if not class_path in export_list:
+            export_list[class_path] = []  # methods
+
+        export_list[class_path].append(
+            (method_name, method_signature, method_native_name, method_native_prototype)
+        )
+    if len(export_list) == 0:
+        logger.info("No export methods")
+        return
+
+    # Generate extern block and export block
+    extern_block = []
+    export_block = ["\njclass clazz;\n"]
+    export_block_template = 'clazz = env->FindClass("%s");\nif (clazz == nullptr)\n    return "Class not found: %s";\n'
+    export_block_template += "const JNINativeMethod export_method_%d[] = {\n%s\n};\n"
+    export_block_template += "env->RegisterNatives(clazz, export_method_%d, %d);\n"
+    export_block_template += "env->DeleteLocalRef(clazz);\n"
+    for index, class_path in enumerate(sorted(export_list.keys())):
+        methods = export_list[class_path]
+        extern_block.append("\n".join(["extern %s;" % method[3] for method in methods]))
+
+        export_methods = ",\n".join(
+            [
+                '{"%s", "%s", (void *)%s}' % (method[0], method[1], method[2])
+                for method in methods
+            ]
+        )
+        export_block.append(
+            export_block_template
+            % (class_path, class_path, index, export_methods, index, len(methods))
+        )
+    export_block.append("return nullptr;\n")
+    # Write DynamicRegister.cpp
+    filepath = os.path.join(source_dir, "DynamicRegister.cpp")
+    with open(filepath, "w", encoding="utf-8") as fp:
+        fp.write('#include "DynamicRegister.h"\n\n')
+        fp.write("\n".join(extern_block))
+        fp.write("\n\nconst char *dynamic_register_compile_methods(JNIEnv *env) {")
+        fp.write("\n".join(export_block))
+        fp.write("}")
+
 
 # n
 def dcc_main(
@@ -736,6 +806,7 @@ def dcc_main(
     do_compile=True,
     project_dir=None,
     source_archive="project-source.zip",
+    dynamic_register=False,
 ):
     if not path.exists(apkfile):
         Logger.error("Input apk file %s does not exist", apkfile)
@@ -771,7 +842,9 @@ def dcc_main(
         adjust_application_mk(apkfile)
 
     # Convert dex to cpp
-    compiled_methods, errors = compile_dex(apkfile, filtercfg, obfus)
+    compiled_methods, method_prototypes, errors = compile_dex(
+        apkfile, filtercfg, obfus, dynamic_register
+    )
 
     if errors:
         Logger.warning("================================")
@@ -797,6 +870,10 @@ def dcc_main(
             move(src_zip, source_archive)
 
     if do_compile:
+        if dynamic_register:
+            write_dynamic_register(project_dir, compiled_methods, method_prototypes)
+        else:
+            write_dummy_dynamic_register(project_dir)
         build_project(project_dir)
 
     if is_apk(apkfile) and outapk:
@@ -961,6 +1038,12 @@ if __name__ == "__main__":
         help="Obfuscate string constants.",
     )
     parser.add_argument(
+        "-d", "--dynamic-register",
+        action="store_true",
+        default=False,
+        help="Export native methods using RegisterNatives.",
+    )
+    parser.add_argument(
         "--filter", default="filter.txt", help="Method filters configuration file."
     )
     parser.add_argument(
@@ -1003,6 +1086,7 @@ if __name__ == "__main__":
     IGNORE_APP_LIB_ABIS = args["force_keep_libs"]
     do_compile = not args["no_build"]
     source_archive = args["project_archive"]
+    dynamic_register = args["dynamic_register"]
 
     if args["source_dir"]:
         project_dir = args["source_dir"]
@@ -1045,6 +1129,7 @@ if __name__ == "__main__":
             do_compile,
             project_dir,
             source_archive,
+            dynamic_register,
         )
     except Exception as e:
         Logger.error("Compile %s failed!" % input_apk, exc_info=True)

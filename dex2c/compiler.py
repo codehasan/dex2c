@@ -98,13 +98,18 @@ class IrMethod(object):
         if self.writer:
             return str(self.writer)
         return ""
+    
+    def get_prototype(self):
+        if self.writer:
+            return self.writer.get_prototype()
+        return ''
 
     def __repr__(self):
         return "class IrMethod(object): %s" % self.name
 
 
 class IrBuilder(object):
-    def __init__(self, methanalysis, obfus):
+    def __init__(self, methanalysis, obfus, dynamic_register):
         method = methanalysis.get_method()
         self.method = method
         self.irmethod = None
@@ -115,6 +120,7 @@ class IrBuilder(object):
         self.var_to_name = defaultdict()
         self.offset_to_node = {}
         self.graph = None
+        self.dynamic_register = dynamic_register
 
         self.access = util.get_access_method(method.get_access_flags())
 
@@ -177,7 +183,7 @@ class IrBuilder(object):
         irmethod.params = self.lparams
         irmethod.params_type = self.params_type
 
-        writer = Writer(irmethod)
+        writer = Writer(irmethod, self.dynamic_register)
         writer.write_method()
         irmethod.writer = writer
         return irmethod
@@ -554,19 +560,21 @@ class DvMachine(object):
 
 
 class Dex2C:
-    def __init__(self, vm, vmx, obfus):
+    def __init__(self, vm, vmx, obfus, dynamic_register):
         self.vm = vm
         self.vmx = vmx
         self.obfus = obfus
+        self.dynamic_register = dynamic_register
+        
 
     def get_source_method(self, m):
         mx = self.vmx.get_method(m)
-        z = IrBuilder(mx, self.obfus)
+        z = IrBuilder(mx, self.obfus, self.dynamic_register)
         irmethod = z.process()
         if irmethod:
-            return irmethod.get_source()
+            return (irmethod.get_source(), irmethod.get_prototype())
         else:
-            return None
+            return (None, None)
 
     def get_source_class(self, _class):
         c = DvClass(_class, self.vmx)
