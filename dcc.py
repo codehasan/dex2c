@@ -2,7 +2,6 @@
 # coding=utf-8
 import argparse
 import os
-import platform
 import re
 import sys
 import json
@@ -919,6 +918,15 @@ def dcc_main(
         )
 
         if application_class_name == "" or file_path == "":
+            for smali_folder in smali_folders:
+                loader = path.join(
+                    decompiled_dir, smali_folder, custom_loader.replace(".", os.sep) + ".smali"
+                )
+                if path.isfile(loader):
+                    Logger.error(
+                        f" Please, edit the Custom Loader: \033[31m{custom_loader}\033[0m already exists.\n"
+                    )
+                    return
             try:
                 Logger.info(
                     "\nApplication class not found in the AndroidManifest.xml or doesn't exist in dex, adding \033[32m"
@@ -1004,16 +1012,8 @@ def dcc_main(
                 smali_folders[-1],
                 custom_loader[0 : custom_loader.rfind(".")].replace(".", os.sep),
             )
-            if path.exists(loaderDir):
-                try:
-                    rmtree(loaderDir)
-                except OSError as e:
-                    if platform.system() == "Windows":
-                        run(["rd", "/s", "/q", loaderDir], shell=True)
-                    else:
-                        run(["rm", "-rf", loaderDir], shell=True)
-            os.makedirs(loaderDir)
-
+            if not path.isdir(loaderDir):
+                os.makedirs(loaderDir)
         copy(
             temp_loader,
             path.join(
