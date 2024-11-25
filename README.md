@@ -213,6 +213,7 @@ Open `project/jni/Android.mk` file in the cloned directory. You will find a vari
     - [x] --custom-loader
     - [x] --force-keep-libs
     - [x] --obfuscate
+    - [x] --dynamic-register
 
 See the [open issues](https://github.com/codehasan/dex2c/issues) for a full list of proposed features and known issues.
 
