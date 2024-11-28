@@ -29,11 +29,14 @@ from string import ascii_letters, digits
 from shutil import copy, move, make_archive, rmtree, copytree
 
 
-APKTOOL = "tools/apktool.jar"
-APKTOOL2 = "tools/apktool.bat"
-APKTOOL3 = "tools/apktool"
-SIGNJAR = "tools/apksigner.jar"
-MANIFEST_EDITOR = "tools/manifest-editor.jar"
+current_dir = os.path.dirname(os.path.abspath(__file__))
+tools_dir = os.path.join(current_dir, "tools")
+
+APKTOOL = os.path.join(tools_dir, "apktool.jar")
+APKTOOL2 = os.path.join(tools_dir, "apktool.bat")
+APKTOOL3 = os.path.join(tools_dir, "apktool")
+SIGNJAR = os.path.join(tools_dir, "apksigner.jar")
+MANIFEST_EDITOR = os.path.join(tools_dir, "manifest-editor.jar")
 NDKBUILD = "ndk-build"
 
 SKIP_SYNTHETIC_METHODS = False
@@ -728,6 +731,7 @@ def adjust_application_mk(apkfile):
     else:
         raise Exception(f"{apkfile} is not an apk file")
 
+
 def write_dummy_dynamic_register(project_dir):
     source_dir = os.path.join(project_dir, "jni", "nc")
     if not os.path.exists(source_dir):
@@ -737,6 +741,7 @@ def write_dummy_dynamic_register(project_dir):
         fp.write(
             '#include "DynamicRegister.h"\n\nconst char *dynamic_register_compile_methods(JNIEnv *env) { return nullptr; }'
         )
+
 
 def write_dynamic_register(project_dir, compiled_methods, method_prototypes):
     source_dir = os.path.join(project_dir, "jni", "nc")
@@ -920,7 +925,9 @@ def dcc_main(
         if application_class_name == "" or file_path == "":
             for smali_folder in smali_folders:
                 loader = path.join(
-                    decompiled_dir, smali_folder, custom_loader.replace(".", os.sep) + ".smali"
+                    decompiled_dir,
+                    smali_folder,
+                    custom_loader.replace(".", os.sep) + ".smali",
                 )
                 if path.isfile(loader):
                     Logger.error(
@@ -1034,11 +1041,16 @@ if __name__ == "__main__":
 
     parser.add_argument("-a", "--input", nargs="?", help="Input apk file path")
     parser.add_argument("-o", "--out", nargs="?", help="Output apk file path")
-    parser.add_argument("-p", "--obfuscate", action="store_true", default=False,
+    parser.add_argument(
+        "-p",
+        "--obfuscate",
+        action="store_true",
+        default=False,
         help="Obfuscate string constants.",
     )
     parser.add_argument(
-        "-d", "--dynamic-register",
+        "-d",
+        "--dynamic-register",
         action="store_true",
         default=False,
         help="Export native methods using RegisterNatives.",
