@@ -96,12 +96,15 @@ Python 3.8 or higher is required for running this tool. So, make sure your pytho
    ```
 2. Install JRE/JDK & zipalign if you don't have it installed. The recommended JDK version is 17.
    ```bash
-   sudo apt-get install openjdk-17-jdk, zipalign
+   sudo apt-get install openjdk-17-jdk zipalign
    ```
 
 ### Windows
 
 ![Windows](https://img.shields.io/badge/Windows-0078D6?style=for-the-badge&logo=windows&logoColor=white)
+
+> [!NOTE]
+> While this is supported on Windows, we strongly recommend using a Linux system for optimal compatibility and performance. If you're on Windows, consider using a Windows Subsystem for Linux (WSL) distribution to ensure a smoother and more reliable experience. The setup and instructions for WSL are the same as those for a [Linux](#linux).
 
 1. Install required dependencies.
    ```bash
