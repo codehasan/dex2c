@@ -765,7 +765,7 @@ def write_dynamic_register(project_dir, compiled_methods, method_prototypes):
             (method_name, method_signature, method_native_name, method_native_prototype)
         )
     if len(export_list) == 0:
-        logger.info("No export methods")
+        Logger.info("No export methods")
         return
 
     # Generate extern block and export block
