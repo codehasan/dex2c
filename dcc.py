@@ -95,13 +95,49 @@ def make_temp_file(suffix=""):
     return tmp
 
 
+def modify_application_name(manifest_path, custom_loader):
+    from xml.etree import ElementTree as ET
+
+    ET.register_namespace("android", "http://schemas.android.com/apk/res/android")
+
+    with open(manifest_path, "r") as f:
+        file_contents = f.read()
+
+    manifest_start = file_contents.index("<manifest")
+    before_manifest = file_contents[:manifest_start]
+
+    root = ET.fromstring(file_contents[manifest_start:])
+
+    application = root.find("application")
+    if "{http://schemas.android.com/apk/res/android}name" in application.attrib:
+        application.attrib["{http://schemas.android.com/apk/res/android}name"] = (
+            custom_loader
+        )
+    else:
+        application.set("android:name", custom_loader)
+
+    if (
+        "{http://schemas.android.com/apk/res/android}extractNativeLibs"
+        in application.attrib
+    ):
+        application.attrib[
+            "{http://schemas.android.com/apk/res/android}extractNativeLibs"
+        ] = "true"
+
+    xml_str = ET.tostring(root, encoding="utf-8").decode()
+    output = before_manifest + xml_str
+
+    with open(manifest_path, "w") as f:
+        f.write(output)
+
+
 # n
 def clean_tmp_directory():
     tmpdir = ".tmp"
     try:
         Logger.info("Removing .tmp folder")
         rmtree(tmpdir)
-    except OSError as e:
+    except OSError:
         run(["rd", "/s", "/q", tmpdir], shell=True)
 
 
@@ -116,7 +152,7 @@ class ApkTool(object):
     def decompile(apk):
         outdir = make_temp_dir("dcc-apktool-")
         if is_windows():
-            check_call([APKTOOL2, "d", "-r", "-f", "-o", outdir, apk])
+            check_call([APKTOOL2, "d", "-resm", "keep", "-f", "-o", outdir, apk])
         else:
             check_call(["bash", APKTOOL3, "d", "-r", "-f", "-o", outdir, apk])
         return outdir
@@ -124,19 +160,24 @@ class ApkTool(object):
     @staticmethod
     def compile(decompiled_dir):
         unsiged_apk = make_temp_file("-unsigned.apk")
-        check_call(
-            [
-                "java",
-                "-jar",
-                APKTOOL,
-                "b",
-                "--advanced",
-                "-o",
-                unsiged_apk,
-                decompiled_dir,
-            ],
-            stderr=STDOUT,
-        )
+        if is_windows():
+            check_call(
+                [APKTOOL2, "b", "--advanced", "-o", unsiged_apk, decompiled_dir],
+                stderr=STDOUT,
+            )
+        else:
+            check_call(
+                [
+                    "bash",
+                    APKTOOL3,
+                    "b",
+                    "--advanced",
+                    "-o",
+                    unsiged_apk,
+                    decompiled_dir,
+                ],
+                stderr=STDOUT,
+            )
         return unsiged_apk
 
 
@@ -941,16 +982,21 @@ def dcc_main(
                     + "\033[0m\n"
                 )
 
-                check_call(
-                    [
-                        "java",
-                        "-jar",
-                        MANIFEST_EDITOR,
-                        path.join(decompiled_dir, "AndroidManifest.xml"),
-                        custom_loader,
-                    ],
-                    stderr=STDOUT,
-                )
+                if is_windows():
+                    modify_application_name(
+                        path.join(decompiled_dir, "AndroidManifest.xml"), custom_loader
+                    )
+                else:
+                    check_call(
+                        [
+                            "java",
+                            "-jar",
+                            MANIFEST_EDITOR,
+                            path.join(decompiled_dir, "AndroidManifest.xml"),
+                            custom_loader,
+                        ],
+                        stderr=STDOUT,
+                    )
             except Exception as e:
                 Logger.error(f"Error: {e.returncode} - {e.output}", exec_info=True)
         else:
@@ -960,16 +1006,21 @@ def dcc_main(
                 + "\033[0m\n"
             )
 
-            check_call(
-                [
-                    "java",
-                    "-jar",
-                    MANIFEST_EDITOR,
-                    path.join(decompiled_dir, "AndroidManifest.xml"),
-                    application_class_name,
-                ],
-                stderr=STDOUT,
-            )
+            if is_windows():
+                modify_application_name(
+                    path.join(decompiled_dir, "AndroidManifest.xml"), custom_loader
+                )
+            else:
+                check_call(
+                    [
+                        "java",
+                        "-jar",
+                        MANIFEST_EDITOR,
+                        path.join(decompiled_dir, "AndroidManifest.xml"),
+                        application_class_name,
+                    ],
+                    stderr=STDOUT,
+                )
 
             line_to_insert = (
                 "    invoke-static {}, L"

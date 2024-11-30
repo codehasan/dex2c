@@ -96,18 +96,21 @@ Python 3.8 or higher is required for running this tool. So, make sure your pytho
    ```
 2. Install JRE/JDK & zipalign if you don't have it installed. The recommended JDK version is 17.
    ```bash
-   sudo apt-get install openjdk-17-jdk, zipalign
+   sudo apt-get install openjdk-17-jdk zipalign
    ```
 
 ### Windows
 
 ![Windows](https://img.shields.io/badge/Windows-0078D6?style=for-the-badge&logo=windows&logoColor=white)
 
+> [!NOTE]
+> While this is supported on Windows, we strongly recommend using a Linux system for optimal compatibility and performance. If you're on Windows, consider using a Windows Subsystem for Linux (WSL) distribution to ensure a smoother and more reliable experience. The setup and instructions for WSL are the same as those for a [Linux](#linux).
+
 1. Install required dependencies.
    ```bash
    pip3 install -r requirements.txt
    ```
-2. Install JRE/JDK from <a href="https://www.oracle.com/java/technologies/javase/jdk11-archive-downloads.html">oracle</a> if you don't have it installed. Search in Google, how to install JDK in Windows if you need more guidance on this topic. The recommended JDK version is 11.
+2. Install JRE/JDK from <a href="https://www.oracle.com/java/technologies/javase/jdk11-archive-downloads.html">oracle</a> if you don't have it installed. Search in Google, how to install JDK in Windows if you need more guidance on this topic. The recommended JDK version is 11 and up.
 3. Make sure you've `zipalign` installed. You'll get it in Android SDK build-tools from <a href="https://developer.android.com/studio/releases/build-tools">here</a>. Add it to your system path.
 
 ### Termux
