@@ -591,7 +591,7 @@ def write_compiled_methods(project_dir, compiled_methods):
         except Exception as e:
             print(f"{str(e)}\n")
 
-    with open(path.join(source_dir, "compiled_methods.txt"), "w") as fp:
+    with open(path.join(source_dir, "compiled_methods.txt"), "w", encoding="utf-8") as fp:
         fp.write("\n".join(list(map("".join, compiled_methods.keys()))))
 
 
