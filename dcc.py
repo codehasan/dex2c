@@ -1008,7 +1008,7 @@ def dcc_main(
 
             if is_windows():
                 modify_application_name(
-                    path.join(decompiled_dir, "AndroidManifest.xml"), custom_loader
+                    path.join(decompiled_dir, "AndroidManifest.xml"), application_class_name
                 )
             else:
                 check_call(
