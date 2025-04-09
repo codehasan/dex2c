@@ -1055,6 +1055,9 @@ def dcc_main(
                     None,
                 )
                 if locals_index is not None:
+                    loc = re.compile("(    (?:\\.locals|\\.registers) )(\\d+)\n").search(content[index + locals_index])
+                    if loc.group(2) == "0":
+                        content[index + locals_index] = loc.group(1) + "1" + "\n"
                     content.insert(index + locals_index + 1, line_to_insert)
                 else:
                     Logger.error("Couldn't read <clinit> method in Application class")
