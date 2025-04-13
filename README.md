@@ -57,7 +57,7 @@
 <!-- ABOUT THE PROJECT -->
 # About the project
 
-This project is a forked version of [amimo/dcc](https://github.com/amimo/dcc), which aims to make it easy for everyone to use this tool. We automated plenty of processes that you had to do manually in the original DCC. Moreover, we always try to add new features to make this tool more usable in real-world applications.
+This project is inspired by [amimo/dcc](https://github.com/amimo/dcc), which aims to make it easy for everyone to use this tool. We automated plenty of processes that you had to do manually in the original DCC. Moreover, we always try to add new features to make this tool more usable in real-world applications.
 Check out <a href="#roadmap">Roadmap</a> to know about the changes we made and also the changes we are planning to make in the feature.
 
 ### Built with
