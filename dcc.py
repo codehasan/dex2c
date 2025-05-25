@@ -309,7 +309,7 @@ def move_unsigned(unsigned_apk, signed_apk):
 
 
 def build_project(project_dir, num_processes=0):
-        check_call([NDKBUILD, "-j%d" % cpu_count(), "-C", project_dir], stderr=STDOUT)
+    check_call([NDKBUILD, "-j%d" % cpu_count(), "-C", project_dir], stderr=STDOUT)
 
 
 def auto_vm(filename):
@@ -592,7 +592,9 @@ def write_compiled_methods(project_dir, compiled_methods):
         except Exception as e:
             print(f"{str(e)}\n")
 
-    with open(path.join(source_dir, "compiled_methods.txt"), "w", encoding="utf-8") as fp:
+    with open(
+        path.join(source_dir, "compiled_methods.txt"), "w", encoding="utf-8"
+    ) as fp:
         fp.write("\n".join(list(map("".join, compiled_methods.keys()))))
 
 
@@ -1009,7 +1011,8 @@ def dcc_main(
 
             if is_windows():
                 modify_application_name(
-                    path.join(decompiled_dir, "AndroidManifest.xml"), application_class_name
+                    path.join(decompiled_dir, "AndroidManifest.xml"),
+                    application_class_name,
                 )
             else:
                 check_call(
@@ -1056,7 +1059,9 @@ def dcc_main(
                     None,
                 )
                 if locals_index is not None:
-                    loc = re.compile("(    (?:\\.locals|\\.registers) )(\\d+)\n").search(content[index + locals_index])
+                    loc = re.compile(
+                        "(    (?:\\.locals|\\.registers) )(\\d+)\n"
+                    ).search(content[index + locals_index])
                     if loc.group(2) == "0":
                         content[index + locals_index] = loc.group(1) + "1" + "\n"
                     content.insert(index + locals_index + 1, line_to_insert)
