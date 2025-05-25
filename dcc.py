@@ -78,6 +78,7 @@ def make_temp_dir(prefix="dcc"):
         random_str = get_random_str()
         tmp = path.join(".tmp", prefix + random_str)
     os.mkdir(tmp)
+    tmp = os.path.normpath(tmp)
 
     return tmp
 
@@ -308,7 +309,7 @@ def move_unsigned(unsigned_apk, signed_apk):
 
 
 def build_project(project_dir, num_processes=0):
-    check_call([NDKBUILD, "-j%d" % cpu_count(), "-C", project_dir], stderr=STDOUT)
+        check_call([NDKBUILD, "-j%d" % cpu_count(), "-C", project_dir], stderr=STDOUT)
 
 
 def auto_vm(filename):
@@ -1169,6 +1170,7 @@ if __name__ == "__main__":
             NDKBUILD = path.join(ndk_dir, "ndk-build.cmd")
         else:
             NDKBUILD = path.join(ndk_dir, "ndk-build")
+        NDKBUILD = os.path.normpath(NDKBUILD)
 
         if not path.exists(NDKBUILD):
             raise Exception("Invalid ndk_dir path, file not found at " + NDKBUILD)
