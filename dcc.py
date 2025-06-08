@@ -308,7 +308,7 @@ def move_unsigned(unsigned_apk, signed_apk):
     copy(unsigned_apk, signed_apk)
 
 
-def build_project(project_dir, num_processes=0):
+def build_project(project_dir):
     check_call([NDKBUILD, "-j%d" % cpu_count(), "-C", project_dir], stderr=STDOUT)
 
 
@@ -855,6 +855,7 @@ def dcc_main(
     project_dir=None,
     source_archive="project-source.zip",
     dynamic_register=False,
+    disable_signing=False,
 ):
     if not path.exists(apkfile):
         Logger.error("Input apk file %s does not exist", apkfile)
@@ -1091,7 +1092,8 @@ def dcc_main(
         )
         unsigned_apk = ApkTool.compile(decompiled_dir)
         zipalign(unsigned_apk, outapk)
-        sign(out_apk, outapk)
+        if not disable_signing:
+            sign(outapk, outapk)
 
 
 sys.setrecursionlimit(5000)
@@ -1147,6 +1149,12 @@ if __name__ == "__main__":
         default="project-source.zip",
         help="Converted cpp code, compressed as zip output file.",
     )
+    parser.add_argument(
+        "--disable-signing",
+        action="store_true",
+        default=False,
+        help="Disable APK signing.",
+    )
 
     args = vars(parser.parse_args())
     input_apk = args["input"]
@@ -1159,6 +1167,7 @@ if __name__ == "__main__":
     do_compile = not args["no_build"]
     source_archive = args["project_archive"]
     dynamic_register = args["dynamic_register"]
+    disable_signing = args["disable_signing"]
 
     if args["source_dir"]:
         project_dir = args["source_dir"]
@@ -1186,10 +1195,10 @@ if __name__ == "__main__":
     show_logging(level=INFO)
 
     # n
-    # Must be invoked first before invoking any other mehtod
+    # Must be invoked first before invoking any other method
     create_tmp_directory()
 
-    # Bakcing up jni folder because modifications will be made in runtime
+    # Backing up jni folder because modifications will be made in runtime
     backup_jni_folder_path = backup_jni_project_folder()
 
     try:
@@ -1203,6 +1212,7 @@ if __name__ == "__main__":
             project_dir,
             source_archive,
             dynamic_register,
+            disable_signing,
         )
     except Exception as e:
         Logger.error("Compile %s failed!" % input_apk, exc_info=True)
