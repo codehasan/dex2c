@@ -673,6 +673,9 @@ def get_application_name_from_manifest(apk_file):
     application_name = application_element.get(
         "{http://schemas.android.com/apk/res/android}name", ""
     )
+    # If application_name is not a full qualified name but a relative name (.SketchApplication)
+    if application_name.startswith("."):
+        application_name = a.package + application_name
     return application_name
 
 
