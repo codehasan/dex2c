@@ -63,28 +63,18 @@ if [ -f "ndk-install.sh" ]; then
   rm ndk-install.sh
 fi
 
-if [ -d "$HOME/android-sdk/ndk/17.2.4988734" ]; then
-  ndk_version="17.2.4988734"
-elif [ -d "$HOME/android-sdk/ndk/18.1.5063045" ]; then
-  ndk_version="18.1.5063045"
-elif [ -d "$HOME/android-sdk/ndk/19.2.5345600" ]; then
-  ndk_version="19.2.5345600"
-elif [ -d "$HOME/android-sdk/ndk/20.1.5948944" ]; then
-  ndk_version="20.1.5948944"
-elif [ -d "$HOME/android-sdk/ndk/21.4.7075529" ]; then
-  ndk_version="21.4.7075529"
-elif [ -d "$HOME/android-sdk/ndk/22.1.7171670" ]; then
-  ndk_version="22.1.7171670"
-elif [ -d "$HOME/android-sdk/ndk/23.2.8568313" ]; then
-  ndk_version="23.2.8568313"
-elif [ -d "$HOME/android-sdk/ndk/24.0.8215888" ]; then
-  ndk_version="24.0.8215888"
-elif [ -d "$HOME/android-sdk/ndk/26.1.10909125" ]; then
-  ndk_version="26.1.10909125"
-elif [ -d "$HOME/android-sdk/ndk/27.1.12297006" ]; then
-  ndk_version="27.1.12297006"
-else
-  echo "${red}You didn't Installed any ndk terminating!"
+ndk_versions=("17.2.4988734" "18.1.5063045" "19.2.5345600" "20.1.5948944" "21.4.7075529" "22.1.7171670" "23.2.8568313" "24.0.8215888" "26.1.10909125" "27.1.12297006" "27.2.12479018" "28.1.13356709" "29.0.13113456")
+ndk_version=""
+
+for version in "${ndk_versions[@]}"; do
+  if [ -d "$HOME/android-sdk/ndk/$version" ]; then
+    ndk_version="$version"
+    break
+  fi
+done
+
+if [ -z "$ndk_version" ]; then
+  echo "${red}You didn't install any NDK. Terminating!"
   exit 1
 fi
 echo "${yellow}ANDROID NDK Successfully Installed!${nocolor}"
