@@ -1,3 +1,5 @@
+#!/data/data/com.termux/files/usr/bin/bash
+
 if ! command -v termux-setup-storage; then
   echo "This script can be executed only on Termux"
   exit 1
@@ -116,6 +118,15 @@ if [ -f "$HOME/.bashrc" ]; then
   echo -e "export ANDROID_HOME=$HOME/android-sdk\nexport PATH=\$PATH:$HOME/android-sdk/cmdline-tools/latest/bin\nexport PATH=\$PATH:$HOME/android-sdk/platform-tools\nexport PATH=\$PATH:$HOME/android-sdk/build-tools/34.0.4\nexport PATH=\$PATH:$HOME/android-sdk/ndk/$ndk_version\nexport ANDROID_NDK_ROOT=$HOME/android-sdk/ndk/$ndk_version" >> ~/.bashrc
 elif [ -f "$HOME/.zshrc" ]; then
   echo -e "export ANDROID_HOME=$HOME/android-sdk\nexport PATH=\$PATH:$HOME/android-sdk/cmdline-tools/latest/bin\nexport PATH=\$PATH:$HOME/android-sdk/platform-tools\nexport PATH=\$PATH:$HOME/android-sdk/build-tools/34.0.4\nexport PATH=\$PATH:$HOME/android-sdk/ndk/$ndk_version\nexport ANDROID_NDK_ROOT=$HOME/android-sdk/ndk/$ndk_version" >> ~/.zshrc
+elif [ -f "$HOME/.xonshrc" ]; then
+  cat <<EOF >> "$HOME/.xonshrc"
+\$ANDROID_HOME = "${HOME}/android-sdk"
+\$PATH.append('${HOME}/android-sdk/cmdline-tools/latest/bin')
+\$PATH.append('${HOME}/android-sdk/platform-tools')
+\$PATH.append('${HOME}/android-sdk/build-tools/34.0.4')
+\$PATH.append('${HOME}/android-sdk/ndk/${ndk_version}')
+\$ANDROID_NDK_ROOT = "${HOME}/android-sdk/ndk/${ndk_version}"
+EOF
 else
   echo -e "export ANDROID_HOME=$HOME/android-sdk\nexport PATH=\$PATH:$HOME/android-sdk/cmdline-tools/latest/bin\nexport PATH=\$PATH:$HOME/android-sdk/platform-tools\nexport PATH=\$PATH:$HOME/android-sdk/build-tools/34.0.4\nexport PATH=\$PATH:$HOME/android-sdk/ndk/$ndk_version\nexport ANDROID_NDK_ROOT=$HOME/android-sdk/ndk/$ndk_version" >> $PREFIX/etc/bash.bashrc
 fi
