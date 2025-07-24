@@ -20,7 +20,7 @@ note="$(tput setaf 6)"
 
 echo "${green}━━━ Basic Requirements Setup ━━━${nocolor}"
 
-pkg install -y python git cmake rust clang make wget ndk-sysroot zlib libxml2 libxslt pkg-config libjpeg-turbo build-essential binutils openssl
+pkg install -y python git cmake rust clang make wget ndk-sysroot zlib libxml2 libxslt pkg-config libjpeg-turbo build-essential binutils openssl aapt
 # UnComment below line if you face clang error during installation procedure
 # _file=$(find $PREFIX/lib/python3.11/_sysconfigdata*.py)
 # rm -rf $PREFIX/lib/python3.11/__pycache__
