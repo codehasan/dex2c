@@ -114,12 +114,27 @@ fi
 cd ~/dex2c
 python3 -m pip install -r requirements.txt || exit 2
 
-if [ -f "$HOME/.bashrc" ]; then
-  echo -e "export ANDROID_HOME=$HOME/android-sdk\nexport PATH=\$PATH:$HOME/android-sdk/cmdline-tools/latest/bin\nexport PATH=\$PATH:$HOME/android-sdk/platform-tools\nexport PATH=\$PATH:$HOME/android-sdk/build-tools/34.0.4\nexport PATH=\$PATH:$HOME/android-sdk/ndk/$ndk_version\nexport ANDROID_NDK_ROOT=$HOME/android-sdk/ndk/$ndk_version" >> ~/.bashrc
-elif [ -f "$HOME/.zshrc" ]; then
-  echo -e "export ANDROID_HOME=$HOME/android-sdk\nexport PATH=\$PATH:$HOME/android-sdk/cmdline-tools/latest/bin\nexport PATH=\$PATH:$HOME/android-sdk/platform-tools\nexport PATH=\$PATH:$HOME/android-sdk/build-tools/34.0.4\nexport PATH=\$PATH:$HOME/android-sdk/ndk/$ndk_version\nexport ANDROID_NDK_ROOT=$HOME/android-sdk/ndk/$ndk_version" >> ~/.zshrc
-elif [ -f "$HOME/.xonshrc" ]; then
-  cat <<EOF >> "$HOME/.xonshrc"
+update_rc() {
+  local file="$1"
+  sed -i '/export ANDROID_HOME=/d' "$file"
+  sed -i '/export PATH=.*\/android-sdk\/cmdline-tools\/latest\/bin/d' "$file"
+  sed -i '/export PATH=.*\/android-sdk\/platform-tools/d' "$file"
+  sed -i '/export PATH=.*\/android-sdk\/build-tools\/34.0.4/d' "$file"
+  sed -i '/export PATH=.*\/android-sdk\/ndk\/.*/d' "$file"
+  sed -i '/export ANDROID_NDK_ROOT=/d' "$file"
+
+  echo -e "export ANDROID_HOME=$HOME/android-sdk\nexport PATH=\$PATH:$HOME/android-sdk/cmdline-tools/latest/bin\nexport PATH=\$PATH:$HOME/android-sdk/platform-tools\nexport PATH=\$PATH:$HOME/android-sdk/build-tools/34.0.4\nexport PATH=\$PATH:$HOME/android-sdk/ndk/$ndk_version\nexport ANDROID_NDK_ROOT=$HOME/android-sdk/ndk/$ndk_version" >> "$file"
+}
+
+update_xonsh_rc() {
+  local file="$1"
+  sed -i '/\$ANDROID_HOME =/d' "$file"
+  sed -i '/\$PATH.*\/android-sdk\/cmdline-tools\/latest\/bin/d' "$file"
+  sed -i '/\$PATH.*\/android-sdk\/platform-tools/d' "$file"
+  sed -i '/\$PATH.*\/android-sdk\/build-tools\/34.0.4/d' "$file"
+  sed -i '/\$PATH.*\/android-sdk\/ndk\/.*/d' "$file"
+  sed -i '/\$ANDROID_NDK_ROOT =/d' "$file"
+  cat <<EOF >> "$file"
 \$ANDROID_HOME = "${HOME}/android-sdk"
 \$PATH.append('${HOME}/android-sdk/cmdline-tools/latest/bin')
 \$PATH.append('${HOME}/android-sdk/platform-tools')
@@ -127,8 +142,19 @@ elif [ -f "$HOME/.xonshrc" ]; then
 \$PATH.append('${HOME}/android-sdk/ndk/${ndk_version}')
 \$ANDROID_NDK_ROOT = "${HOME}/android-sdk/ndk/${ndk_version}"
 EOF
-else
-  echo -e "export ANDROID_HOME=$HOME/android-sdk\nexport PATH=\$PATH:$HOME/android-sdk/cmdline-tools/latest/bin\nexport PATH=\$PATH:$HOME/android-sdk/platform-tools\nexport PATH=\$PATH:$HOME/android-sdk/build-tools/34.0.4\nexport PATH=\$PATH:$HOME/android-sdk/ndk/$ndk_version\nexport ANDROID_NDK_ROOT=$HOME/android-sdk/ndk/$ndk_version" >> $PREFIX/etc/bash.bashrc
+}
+
+if [ -f "$HOME/.bashrc" ]; then
+  update_rc "$HOME/.bashrc"
+fi
+if [ -f "$HOME/.zshrc" ]; then
+  update_rc "$HOME/.zshrc"
+fi
+if [ -f "$HOME/.xonshrc" ]; then
+  update_xonsh_rc "$HOME/.xonshrc"
+fi
+if [ -f "$PREFIX/etc/bash.bashrc" ]; then
+  update_rc "$PREFIX/etc/bash.bashrc"
 fi
 
 cat > $HOME/dex2c/dcc.cfg << EOL
