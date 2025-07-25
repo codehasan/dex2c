@@ -157,24 +157,6 @@ if [ -f "$PREFIX/etc/bash.bashrc" ]; then
   update_rc "$PREFIX/etc/bash.bashrc"
 fi
 
-current_shell=$(basename "$SHELL")
-
-case "$current_shell" in
-  bash)
-    if [ -f "$HOME/.bashrc" ]; then
-      . "$HOME/.bashrc"
-    else
-      . "$PREFIX/etc/bash.bashrc"
-    fi
-    ;;
-  zsh)
-    . "$HOME/.zshrc"
-    ;;
-  xonsh)
-    . "$HOME/.xonshrc"
-    ;;
-esac
-
 cat > $HOME/dex2c/dcc.cfg << EOL
 {
     "apktool": "tools/apktool.jar",
