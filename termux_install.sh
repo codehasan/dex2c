@@ -58,7 +58,7 @@ echo "${red} If you're choosing other options then you're on your own and experi
 if [ -f "ndk-install.sh" ]; then
   chmod +x ndk-install.sh && bash ndk-install.sh
 else
-  cd && pkg upgrade && pkg install wget && wget https://github.com/MrIkso/AndroidIDE-NDK/raw/main/ndk-install.sh --no-verbose --show-progress -N && chmod +x ndk-install.sh && bash ndk-install.sh
+  cd && echo -ne "Prepering, please wait..." && pkg upgrade &> /dev/null && pkg install wget &> /dev/null && wget -q https://github.com/MrIkso/AndroidIDE-NDK/raw/main/ndk-install.sh -N && echo -ne "\r                     \r" && chmod +x ndk-install.sh && bash ndk-install.sh
 fi
 
 if [ -f "ndk-install.sh" ]; then
