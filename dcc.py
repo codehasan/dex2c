@@ -23,7 +23,7 @@ from dex2c.util import (
     is_synthetic_method,
     is_native_method,
 )
-from subprocess import check_call, STDOUT, run
+from subprocess import check_call, STDOUT, run, CalledProcessError
 from random import choice
 from string import ascii_letters, digits
 from shutil import copy, move, make_archive, rmtree, copytree
@@ -110,20 +110,13 @@ def modify_application_name(manifest_path, custom_loader):
     root = ET.fromstring(file_contents[manifest_start:])
 
     application = root.find("application")
-    if "{http://schemas.android.com/apk/res/android}name" in application.attrib:
-        application.attrib["{http://schemas.android.com/apk/res/android}name"] = (
-            custom_loader
-        )
+    if "android:name" in application.attrib:
+        application.attrib["android:name"] = custom_loader
     else:
         application.set("android:name", custom_loader)
 
-    if (
-        "{http://schemas.android.com/apk/res/android}extractNativeLibs"
-        in application.attrib
-    ):
-        application.attrib[
-            "{http://schemas.android.com/apk/res/android}extractNativeLibs"
-        ] = "true"
+    if "android:extractNativeLibs" in application.attrib:
+        application.attrib["android:extractNativeLibs"] = "true"
 
     xml_str = ET.tostring(root, encoding="utf-8").decode()
     output = before_manifest + xml_str
@@ -487,7 +480,7 @@ def copy_compiled_libs(project_dir, decompiled_dir):
                 raise Exception("ABI %s is not supported!" % abi)
         # n
         android_mk_filename = "project/jni/Android.mk"
-        local_module_value = None
+        local_module_value = ""
         with open(android_mk_filename, "r") as android_mk_file:
             for line in android_mk_file:
                 if line.startswith("LOCAL_MODULE"):
@@ -797,14 +790,14 @@ def write_dynamic_register(project_dir, compiled_methods, method_prototypes):
     # Make export list
     for method_triple in sorted(compiled_methods.keys()):
         full_name = JniLongName(*method_triple)
-        if not full_name in method_prototypes:
+        if full_name not in method_prototypes:
             raise Exception("Method %s prototype info could not be found" % full_name)
         class_path = method_triple[0][1:-1].replace(".", "/")
         method_name = method_triple[1]
         method_signature = method_triple[2]
         method_native_name = full_name
         method_native_prototype = method_prototypes[full_name]
-        if not class_path in export_list:
+        if class_path not in export_list:
             export_list[class_path] = []  # methods
 
         export_list[class_path].append(
@@ -1003,8 +996,10 @@ def dcc_main(
                         ],
                         stderr=STDOUT,
                     )
+            except CalledProcessError as e:
+                Logger.error(f"Error: {e.returncode} - {e.output}", exc_info=True)
             except Exception as e:
-                Logger.error(f"Error: {e.returncode} - {e.output}", exec_info=True)
+                Logger.error(f"Error: {e}", exc_info=True)
         else:
             Logger.info(
                 "\nApplication class from AndroidManifest.xml, \033[32m"
