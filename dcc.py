@@ -163,7 +163,7 @@ class ApkTool(object):
         unsiged_apk = make_temp_file("-unsigned.apk")
         if is_windows():
             check_call(
-                [APKTOOL2, "b", "--advanced", "-o", unsiged_apk, decompiled_dir],
+                [APKTOOL2, "b", "-o", unsiged_apk, decompiled_dir],
                 stderr=STDOUT,
             )
         else:
@@ -172,7 +172,6 @@ class ApkTool(object):
                     "bash",
                     APKTOOL3,
                     "b",
-                    "--advanced",
                     "-o",
                     unsiged_apk,
                     decompiled_dir,
