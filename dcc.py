@@ -301,7 +301,13 @@ def move_unsigned(unsigned_apk, signed_apk):
 
 
 def build_project(project_dir):
-    check_call([NDKBUILD, "-j%d" % cpu_count(), "-C", project_dir], stderr=STDOUT)
+    _cmd = [NDKBUILD, "-C", project_dir]
+    try:
+        cmd = _cmd + ["-j%d" % cpu_count()]
+        check_call(cmd, stderr=STDOUT)
+    except CalledProcessError:
+        Logger.warning("Parallel build failed, retrying serial build...")
+        check_call(_cmd, stderr=STDOUT)
 
 
 def auto_vm(filename):
