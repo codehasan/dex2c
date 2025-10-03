@@ -203,7 +203,7 @@ cat >"$HOME"/dex2c/dcc.cfg <<EOL
         "v1_enabled": true,
         "v2_enabled": true,
         "v3_enabled": true
-    }
+    },
     "ollvm": {
         "enable": $ollvm_enable,
         "flags": "-fvisibility=hidden -mllvm -fla -mllvm -split -mllvm -split_num=5 -mllvm -sub -mllvm -sub_loop=5 -mllvm -sobf -mllvm -bcf_loop=5 -mllvm -bcf_prob=100"
