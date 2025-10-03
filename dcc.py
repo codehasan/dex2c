@@ -857,13 +857,11 @@ def dcc_main(
     source_archive="project-source.zip",
     dynamic_register=False,
     disable_signing=False,
+    enable_ollvm=False,
+    ollvm_flags="",
 ):
     if not path.exists(apkfile):
         Logger.error("Input apk file %s does not exist", apkfile)
-        return
-
-    if not outapk:
-        Logger.error("\033[31mOutput file name required\n\033[0m")
         return
 
     if custom_loader.rfind(".") == -1:
@@ -872,6 +870,22 @@ def dcc_main(
             custom_loader,
         )
         return
+
+    # If OLLVM is enabled, add ollvm CFLAGS
+    if enable_ollvm:
+        Logger.warning("You've enabled ollvm flag, make sure your NDK supports it!")
+        ollvm_cflags = f"LOCAL_CFLAGS := {ollvm_flags}\n"
+        ollvm_cppflags = f"LOCAL_CPPFLAGS := {ollvm_flags}\n"
+
+        with open("project/jni/Android.mk", "r+") as file:
+            lines = file.readlines()
+            for index, line in enumerate(lines):
+                if "LOCAL_LDLIBS    := -llog" in line:
+                    lines.insert(index + 1, ollvm_cflags)
+                    lines.insert(index + 2, ollvm_cppflags)
+                    break
+            file.seek(0)
+            file.writelines(lines)
 
     # Modify the dex2c file to use the custom loader path for integrity check
     with open("project/jni/nc/Dex2C.cpp", "r") as file:
@@ -1104,8 +1118,8 @@ sys.setrecursionlimit(5000)
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
 
-    parser.add_argument("-a", "--input", nargs="?", help="Input apk file path")
-    parser.add_argument("-o", "--out", nargs="?", help="Output apk file path")
+    parser.add_argument("-a", "--input", help="Input apk file path", required=True)
+    parser.add_argument("-o", "--out", help="Output apk file path", required=True)
     parser.add_argument(
         "-p",
         "--obfuscate",
@@ -1171,6 +1185,8 @@ if __name__ == "__main__":
     source_archive = args["project_archive"]
     dynamic_register = args["dynamic_register"]
     disable_signing = args["disable_signing"]
+    enable_ollvm = False
+    ollvm_flags = ""
 
     if args["source_dir"]:
         project_dir = args["source_dir"]
@@ -1195,6 +1211,10 @@ if __name__ == "__main__":
     if "apktool" in dcc_cfg and path.exists(dcc_cfg["apktool"]):
         APKTOOL = dcc_cfg["apktool"]
 
+    if "ollvm" in dcc_cfg and dcc_cfg["ollvm"]["enable"]:
+        enable_ollvm = True
+        ollvm_flags = dcc_cfg["ollvm"]["flags"]
+
     show_logging(level=INFO)
 
     # n
@@ -1216,6 +1236,8 @@ if __name__ == "__main__":
             source_archive,
             dynamic_register,
             disable_signing,
+            enable_ollvm,
+            ollvm_flags,
         )
     except Exception as e:
         Logger.error("Compile %s failed!" % input_apk, exc_info=True)
