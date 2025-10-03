@@ -99,7 +99,8 @@ def make_temp_file(suffix=""):
 def modify_application_name(manifest_path, custom_loader):
     from xml.etree import ElementTree as ET
 
-    ET.register_namespace("android", "http://schemas.android.com/apk/res/android")
+    ns = "http://schemas.android.com/apk/res/android"
+    ET.register_namespace("android", ns)
 
     with open(manifest_path, "r") as f:
         file_contents = f.read()
@@ -110,13 +111,13 @@ def modify_application_name(manifest_path, custom_loader):
     root = ET.fromstring(file_contents[manifest_start:])
 
     application = root.find("application")
-    if "android:name" in application.attrib:
-        application.attrib["android:name"] = custom_loader
+    if f"{{{ns}}}name" in application.attrib:
+        application.attrib[f"{{{ns}}}name"] = custom_loader
     else:
-        application.set("android:name", custom_loader)
+        application.set(f"{{{ns}}}name", custom_loader)
 
-    if "android:extractNativeLibs" in application.attrib:
-        application.attrib["android:extractNativeLibs"] = "true"
+    if f"{{{ns}}}extractNativeLibs" in application.attrib:
+        application.attrib[f"{{{ns}}}extractNativeLibs"] = "true"
 
     xml_str = ET.tostring(root, encoding="utf-8").decode()
     output = before_manifest + xml_str
