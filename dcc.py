@@ -875,15 +875,15 @@ def dcc_main(
     # If OLLVM is enabled, add ollvm CFLAGS
     if enable_ollvm:
         Logger.warning("You've enabled ollvm flag, make sure your NDK supports it!")
-        ollvm_cflags = f"LOCAL_CFLAGS := {ollvm_flags}\n"
+        # ollvm_cflags = f"LOCAL_CFLAGS := {ollvm_flags}\n"
         ollvm_cppflags = f"LOCAL_CPPFLAGS := {ollvm_flags}\n"
 
         with open("project/jni/Android.mk", "r+") as file:
             lines = file.readlines()
             for index, line in enumerate(lines):
                 if "LOCAL_LDLIBS    := -llog" in line:
-                    lines.insert(index + 1, ollvm_cflags)
-                    lines.insert(index + 2, ollvm_cppflags)
+                    # lines.insert(index + 1, ollvm_cflags)
+                    lines.insert(index + 1, ollvm_cppflags)
                     break
             file.seek(0)
             file.writelines(lines)

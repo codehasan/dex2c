@@ -21,6 +21,24 @@ yellow="$(tput setaf 3)"
 note="$(tput setaf 6)"
 ollvm_enable=false
 
+download_ndk() {
+  local ver="$1"
+  local name="$2"
+  echo "${yellow}Warning! This NDK only for aarch64${nocolor}"
+  echo "Selected this version $name ($ver) to install"
+  mkdir -p "$HOME/android-sdk/ndk"
+  wget "https://github.com/codehasan/dex2c/releases/download/ollvm-termux/android-ndk-$name.tar.xz" \
+    --no-verbose --show-progress -N || {
+    echo "${red}Download failed!${nocolor}"
+    return 1
+  }
+  tar -xvf "android-ndk-$name.tar.xz" -C "$HOME/android-sdk/ndk"
+  rm "android-ndk-$name.tar.xz"
+  if [ "$name" == "r25c-ollvm-aarch64" ]; then
+    echo "python3" > "$HOME/android-sdk/ndk/$ver/toolchains/llvm/prebuilt/linux-x86_64/python3/bin/python3"
+  fi
+}
+
 echo "${green}━━━ Basic Requirements Setup ━━━${nocolor}"
 
 pkg install -y python git cmake rust clang make wget ndk-sysroot zlib libxml2 libxslt pkg-config libjpeg-turbo build-essential binutils openssl aapt
@@ -58,31 +76,29 @@ if [[ $enable_ollvm == "y" || $enable_ollvm == "Y" ]]; then
   ollvm_enable=true
   ndk_ver=""
   ndk_ver_name=""
-  echo "${yellow}Select with NDK version you need install?${nocolor}"
+  echo "${yellow}Select which NDK version you need to install?${nocolor}"
+  echo "Skip (q) if you've it installed already"
   select item in r25c r28c; do
     case $item in
     "r25c")
       ndk_ver="25.2.9519653"
       ndk_ver_name="r25c-ollvm-aarch64"
+      download_ndk "$ndk_ver" "$ndk_ver_name"
       break
       ;;
     "r28c")
       ndk_ver="28.2.13676358"
       ndk_ver_name="r28c"
+      download_ndk "$ndk_ver" "$ndk_ver_name"
       break
       ;;
     *)
-      echo "${red}No NDK version selected, terminating...${nocolor}"
-      exit 1
+      echo "${yellow}No OLLVM NDK selected, skipping download.${nocolor}"
+      echo "Will try to use already installed NDK instead if found..."
+      break
       ;;
     esac
   done
-  echo "Selected this version $ndk_ver_name ($ndk_ver) to install"
-  echo "${yellow}Warning! This NDK only for aarch64${nocolor}"
-  wget https://github.com/codehasan/dex2c/releases/download/ollvm-termux/android-ndk-$ndk_ver_name.tar.xz --no-verbose --show-progress -N
-  mkdir -p "$HOME"/android-sdk/ndk
-  tar -xvf android-ndk-$ndk_ver_name.tar.xz -C "$HOME"/android-sdk/ndk
-  rm android-ndk-$ndk_ver_name.tar.xz
 else
   echo "Now You'll be asked about which version of NDK to isntall"
   echo "${note}If your Android Version is 9 or above then choose ${red}'9'${nocolor}"
@@ -100,14 +116,51 @@ else
 fi
 
 ndk_versions=("17.2.4988734" "18.1.5063045" "19.2.5345600" "20.1.5948944" "21.4.7075529" "22.1.7171670" "23.2.8568313" "24.0.8215888" "26.1.10909125" "27.1.12297006" "27.2.12479018" "28.1.13356709" "29.0.13113456" "27.3.13750724" "26.3.11579264" "28.2.13676358" "29.0.14033849-beta4" "23.1.7779620" "25.2.9519653")
-ndk_version=""
 
-for version in "${ndk_versions[@]}"; do
-  if [ -d "$HOME/android-sdk/ndk/$version" ]; then
-    ndk_version="$version"
-    break
-  fi
+installed=()
+for v in "${ndk_versions[@]}"; do
+  [ -d "$HOME/android-sdk/ndk/$v" ] && installed+=("$v")
 done
+
+ndk_version=""
+if [ ${#installed[@]} -gt 1 ]; then
+  echo "Multiple NDK versions found:"
+  for i in "${!installed[@]}"; do
+    echo "$((i + 1))) ${installed[i]}"
+  done
+
+  while true; do
+    read -rp "Hit Enter to auto-select (${installed[0]}), or choose one: " choice
+    case "$choice" in
+    "")
+      ndk_version="${installed[0]}"
+      break
+      ;;
+    *[!0-9]*)
+      echo "Invalid input, try again."
+      ;;
+    *)
+      ndk_version="${installed[$((choice - 1))]}"
+      if [ -n "$ndk_version" ]; then
+        break
+      else
+        echo "Invalid selection, try again."
+      fi
+      ;;
+    esac
+  done
+fi
+
+if [ -z "$ndk_version" ]; then
+  for v in "${ndk_versions[@]}"; do
+    if [ -d "$HOME/android-sdk/ndk/$v" ]; then
+      ndk_version="$v"
+      break
+    fi
+  done
+fi
+
+echo "Using NDK version: $ndk_version"
 
 if [ -z "$ndk_version" ]; then
   echo "${red}You didn't install any NDK. Terminating!"
