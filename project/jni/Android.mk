@@ -4,6 +4,8 @@ include $(CLEAR_VARS)
 LOCAL_MODULE    := stub
 LOCAL_LDLIBS    := -llog
 
+LOCAL_LDFLAGS += "-Wl,-z,max-page-size=16384"
+
 SOURCES := $(wildcard $(LOCAL_PATH)/nc/*.cpp)
 LOCAL_C_INCLUDES := $(LOCAL_PATH)/nc
 

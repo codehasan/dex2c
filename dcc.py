@@ -209,7 +209,7 @@ def zipalign(input_apk, output_apk):
         "zipalign",
         "-p",
         "-f",
-        "4",
+        "16",
         input_apk,
         output_apk,
     ]
