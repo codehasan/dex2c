@@ -262,12 +262,12 @@ bool d2c_resolve_field(JNIEnv *env, jclass *cached_class, jfieldID *cached_field
 extern "C" {
 
 JNIEXPORT void JNICALL
-Java_amimo_dcc_DccApplication_initDcc__(JNIEnv *env, jobject thiz) {
+Java_dex2c_loader_DccApplication_initDcc__(JNIEnv *env, jobject thiz) {
 
 }
 
 JNIEXPORT void JNICALL
-Java_amimo_dcc_DccApplication__0003cinit_0003e__(JNIEnv *env, jobject thiz) {
+Java_dex2c_loader_DccApplication__0003cinit_0003e__(JNIEnv *env, jobject thiz) {
     auto instance = (jobject) env->NewLocalRef(thiz);
     jclass application = env->FindClass("android/app/Application");
     jmethodID init = env->GetMethodID(application, "<init>", "()V");
@@ -283,7 +283,7 @@ JNIEXPORT jint JNI_OnLoad(JavaVM *vm, void *reserved) {
         return JNI_ERR;
     }
 
-    jclass clz = env->FindClass("amimo/dcc/DccApplication");
+    jclass clz = env->FindClass("dex2c/loader/DccApplication");
 
     if (!clz)
         exit(1);

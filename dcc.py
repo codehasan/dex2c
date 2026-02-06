@@ -472,39 +472,126 @@ class MethodFilter(object):
         return False
 
 
-def copy_compiled_libs(project_dir, decompiled_dir):
+def copy_compiled_libs(project_dir, decompiled_dir, lib_dir):
     compiled_libs_dir = path.join(project_dir, "libs")
-    decompiled_libs_dir = path.join(decompiled_dir, "lib")
+    decompiled_libs_dir = path.join(decompiled_dir, lib_dir)
+    is_unkown_dir = lib_dir != "lib"
+    unknown_files = []
+
+    if is_unkown_dir:
+        if not path.exists(decompiled_libs_dir):
+            decompiled_libs_dir = path.join(decompiled_dir, "unknown", lib_dir)
+
     if not path.exists(compiled_libs_dir):
         return
+
+    android_mk_filename = "project/jni/Android.mk"
+    local_module_value = ""
+    with open(android_mk_filename, "r") as android_mk_file:
+        for line in android_mk_file:
+            if line.startswith("LOCAL_MODULE"):
+                _, local_module_value = line.split(":=", 1)
+                local_module_value = local_module_value.strip()
+                break
+
+    if not local_module_value:
+        raise Exception("LOCAL_MODULE not found in project/jni/Android.mk")
+
+    lib_filename = "lib" + local_module_value + ".so"
+
     if not path.exists(decompiled_libs_dir):
         copytree(compiled_libs_dir, decompiled_libs_dir)
+
+        if is_unkown_dir:
+            for abi in os.listdir(decompiled_libs_dir):
+                abi_path = path.join(decompiled_libs_dir, abi)
+                if path.isdir(abi_path):
+                    for lib_file in os.listdir(abi_path):
+                        relative_path = path.join(lib_dir, abi, lib_file)
+                        unknown_files.append(relative_path)
+            update_apktool_yml(decompiled_dir, unknown_files)
         return
 
-    for abi in os.listdir(decompiled_libs_dir):
-        dst = path.join(decompiled_libs_dir, abi)
-        src = path.join(compiled_libs_dir, abi)
-        if not path.exists(src) and abi == "armeabi":
-            src = path.join(compiled_libs_dir, "armeabi-v7a")
-            Logger.warning("Use armeabi-v7a for armeabi")
+    valid_abis = {
+        "armeabi", "armeabi-v7a", "arm64-v8a",
+        "x86", "x86_64", "mips", "mips64"
+    }
 
-        if not path.exists(src):
-            if IGNORE_APP_LIB_ABIS:
-                continue
+    for abi in os.listdir(compiled_libs_dir):
+        src_abi_dir = path.join(compiled_libs_dir, abi)
+
+        if not path.isdir(src_abi_dir) or abi not in valid_abis:
+            continue
+
+        src_lib = path.join(src_abi_dir, lib_filename)
+        if not path.exists(src_lib):
+            continue
+
+        dst_abi_dir = path.join(decompiled_libs_dir, abi)
+
+        if not path.exists(dst_abi_dir) and abi == "armeabi":
+            armeabi_v7a_dir = path.join(decompiled_libs_dir, "armeabi-v7a")
+            if path.exists(armeabi_v7a_dir):
+                Logger.warning("Use armeabi-v7a for armeabi")
+                dst_abi_dir = armeabi_v7a_dir
+
+        if not path.exists(dst_abi_dir):
+            if lib_dir == "lib":
+                if IGNORE_APP_LIB_ABIS:
+                    continue
+                else:
+                    raise Exception("ABI %s is not supported!" % abi)
             else:
-                raise Exception("ABI %s is not supported!" % abi)
-        # n
-        android_mk_filename = "project/jni/Android.mk"
-        local_module_value = ""
-        with open(android_mk_filename, "r") as android_mk_file:
-            for line in android_mk_file:
-                if line.startswith("LOCAL_MODULE"):
-                    _, local_module_value = line.split(":=", 1)
-                    local_module_value = local_module_value.strip()
-                    break
+                os.makedirs(dst_abi_dir)
 
-        libnc = path.join(src, "lib" + local_module_value + ".so")
-        copy(libnc, dst)
+        copy(src_lib, dst_abi_dir)
+
+        if is_unkown_dir:
+            rpath = path.join(lib_dir, abi, lib_filename)
+            unknown_files.append(rpath)
+
+    if is_unkown_dir and unknown_files:
+        update_apktool_yml(decompiled_dir, unknown_files)
+
+
+def update_apktool_yml(decompiled_dir, unknown_files):
+    apktool_yml_path = path.join(decompiled_dir, "apktool.yml")
+
+    if not path.exists(apktool_yml_path):
+        raise Exception("apktool.yml not found")
+
+    with open(apktool_yml_path, "r") as f:
+        lines = f.readlines()
+
+    unknown_files_index = -1
+    unknown_files_end = -1
+
+    for i, line in enumerate(lines):
+        if line.strip().startswith("unknownFiles:"):
+            unknown_files_index = i
+            for j in range(i + 1, len(lines)):
+                if lines[j] and not lines[j].startswith(" ") and not lines[j].startswith("\t"):
+                    unknown_files_end = j
+                    break
+            if unknown_files_end == -1:
+                unknown_files_end = len(lines)
+            break
+
+    new_entries = []
+    for file_path in unknown_files:
+        normalized_path = file_path.replace(os.sep, "/")
+        new_entries.append(f"  {normalized_path}: 8\n")
+
+    if unknown_files_index != -1:
+        lines[unknown_files_end:unknown_files_end] = new_entries
+    else:
+        if lines and not lines[-1].endswith("\n"):
+            lines[-1] += "\n"
+        lines.append("unknownFiles:\n")
+        lines.extend(new_entries)
+
+    with open(apktool_yml_path, "w") as f:
+        f.writelines(lines)
 
 
 def native_class_methods(smali_path, compiled_methods):
@@ -868,6 +955,7 @@ def dcc_main(
     disable_signing=False,
     enable_ollvm=False,
     ollvm_flags="",
+    lib_dir="lib",
 ):
     if not path.exists(apkfile):
         Logger.error("Input apk file %s does not exist", apkfile)
@@ -901,11 +989,11 @@ def dcc_main(
         dex2c_file_data = file.read()
 
     dex2c_file_data = dex2c_file_data.replace(
-        'env->FindClass("amimo/dcc/DccApplication");',
+        'env->FindClass("dex2c/loader/DccApplication");',
         'env->FindClass("' + custom_loader.replace(".", "/") + '");',
     )
     dex2c_file_data = dex2c_file_data.replace(
-        "Java_amimo_dcc_DccApplication", "Java_" + custom_loader.replace(".", "_")
+        "Java_dex2c_loader_DccApplication", "Java_" + custom_loader.replace(".", "_")
     )
 
     with open("project/jni/nc/Dex2C.cpp", "w") as file:
@@ -952,13 +1040,9 @@ def dcc_main(
     if is_apk(apkfile) and outapk:
         decompiled_dir = ApkTool.decompile(apkfile)
         native_compiled_dexes(decompiled_dir, compiled_methods)
-        copy_compiled_libs(project_dir, decompiled_dir)
-
-        # n
+        copy_compiled_libs(project_dir, decompiled_dir, lib_dir)
         smali_folders = get_smali_folders(decompiled_dir)
         android_mk_file_path = "project/jni/Android.mk"
-        loader_file_path = "loader/DccApplication.smali"
-        temp_loader = make_temp_file("-Loader.smali")
 
         local_module_value = None
         with open(android_mk_file_path, "r") as android_mk_file:
@@ -968,22 +1052,63 @@ def dcc_main(
                     local_module_value = local_module_value.strip()
                     break
 
-        if local_module_value:
-            pattern = r'const-string v0, "[\w\W]+"'
-            replacement = 'const-string v0, "' + local_module_value + '"'
-        else:
+        if not local_module_value:
             raise Exception("Invalid LOCAL_MODULE defined in project/jni/Android.mk")
 
-        with open(loader_file_path, "r") as file:
-            filedata = file.read()
+        temp_loader = None
+        if lib_dir == "lib":
+            loader_file_path = "loader/OldApplication.smali"
+            temp_loader = make_temp_file("-Loader.smali")
 
-        filedata = re.sub(pattern, replacement, filedata)
-        filedata = filedata.replace(
-            "Lamimo/dcc/DccApplication;", "L" + custom_loader.replace(".", "/") + ";"
-        )
+            pattern = r'const-string v0, "[\w\W]+"'
+            replacement = f'const-string v0, "{local_module_value}"'
 
-        with open(temp_loader, "w") as file:
-            file.write(filedata)
+            with open(loader_file_path, "r") as file:
+                filedata = file.read()
+
+            filedata = re.sub(pattern, replacement, filedata)
+            filedata = filedata.replace(
+                "Lamimo/dcc/DccApplication;", f"L{custom_loader.replace('.', '/')};"
+            )
+
+            with open(temp_loader, "w") as file:
+                file.write(filedata)
+        else:
+            dcc_loader_path = "loader/DccApplication.smali"
+            nativelib_loader_path = "loader/NativeLibLoader.smali"
+            temp_dcc_loader = make_temp_file("-Loader.smali")
+            temp_nativelib_loader = make_temp_file("-Loader2.smali")
+
+            package = custom_loader.rsplit(".", 1)[0] if "." in custom_loader else custom_loader
+
+            with open(dcc_loader_path, "r") as file:
+                dcc_filedata = file.read()
+
+            dcc_filedata = dcc_filedata.replace(
+                "Ldex2c/loader/DccApplication;", f"L{custom_loader.replace('.', '/')};"
+            ).replace(
+                "Ldex2c/loader/NativeLibLoader;", f"L{package.replace('.', '/')}/NativeLibLoader;"
+            )
+
+            with open(temp_dcc_loader, "w") as file:
+                file.write(dcc_filedata)
+
+            with open(nativelib_loader_path, "r") as file:
+                nativelib_filedata = file.read()
+
+            lib_pattern = r'\.field static LIB_NAME:Ljava/lang/String; = "lib([\w\W]+)\.so"'
+            lib_replacement = f'.field static LIB_NAME:Ljava/lang/String; = "lib{local_module_value}.so"'
+            lib_dir_pattern = r'\.field static MAIN_PATH:Ljava/lang/String; = "lib/"'
+            lib_dir_replacement = f'.field static MAIN_PATH:Ljava/lang/String; = "{lib_dir}/"'
+
+            nativelib_filedata = re.sub(lib_pattern, lib_replacement, nativelib_filedata)
+            nativelib_filedata = re.sub(lib_dir_pattern, lib_dir_replacement, nativelib_filedata)
+            nativelib_filedata = nativelib_filedata.replace(
+                "Ldex2c/loader/NativeLibLoader;", f"L{package.replace('.', '/')}/NativeLibLoader;"
+            )
+
+            with open(temp_nativelib_loader, "w") as file:
+                file.write(nativelib_filedata)
 
         apk_file_path = apkfile
         application_class_name = get_application_name_from_manifest(apk_file_path)
@@ -1108,7 +1233,8 @@ def dcc_main(
             )
             if not path.isdir(loaderDir):
                 os.makedirs(loaderDir)
-        copy(
+        if temp_loader:
+            copy(
             temp_loader,
             path.join(
                 decompiled_dir,
@@ -1116,6 +1242,24 @@ def dcc_main(
                 custom_loader.replace(".", os.sep) + ".smali",
             ),
         )
+        else:
+            copy(
+                temp_dcc_loader,
+                path.join(
+                    decompiled_dir,
+                    smali_folders[-1],
+                    custom_loader.replace(".", os.sep) + ".smali",
+                ),
+            )
+            copy(
+                temp_nativelib_loader,
+                path.join(
+                    decompiled_dir,
+                    smali_folders[-1],
+                    package.replace(".", os.sep),
+                    "NativeLibLoader.smali",
+                ),
+            )
         unsigned_apk = ApkTool.compile(decompiled_dir)
         zipalign(unsigned_apk, outapk)
         if not disable_signing:
@@ -1148,8 +1292,13 @@ if __name__ == "__main__":
     )
     parser.add_argument(
         "--custom-loader",
-        default="amimo.dcc.DccApplication",
-        help="Loader class, default: amimo.dcc.DccApplication",
+        default="dex2c.loader.DccApplication",
+        help="Loader class, default: dex2c.loader.DccApplication",
+    )
+    parser.add_argument(
+        "--custom-lib-dir",
+        default="lib/",
+        help="Custom library directory, default: lib/"
     )
     parser.add_argument(
         "--skip-synthetic",
@@ -1188,6 +1337,7 @@ if __name__ == "__main__":
     obfus = args["obfuscate"]
     filtercfg = args["filter"]
     custom_loader = args["custom_loader"]
+    custom_lib_dir = args["custom_lib_dir"]
     SKIP_SYNTHETIC_METHODS = args["skip_synthetic"]
     IGNORE_APP_LIB_ABIS = args["force_keep_libs"]
     do_compile = not args["no_build"]
@@ -1224,6 +1374,11 @@ if __name__ == "__main__":
         enable_ollvm = True
         ollvm_flags = dcc_cfg["ollvm"]["flags"]
 
+    lib_dir = dcc_cfg["lib_dir"]
+    if custom_lib_dir != "lib/":
+        lib_dir = custom_lib_dir
+    lib_dir = lib_dir.rstrip("/")
+
     show_logging(level=INFO)
 
     # n
@@ -1247,6 +1402,7 @@ if __name__ == "__main__":
             disable_signing,
             enable_ollvm,
             ollvm_flags,
+            lib_dir,
         )
     except Exception as e:
         Logger.error("Compile %s failed!" % input_apk, exc_info=True)
