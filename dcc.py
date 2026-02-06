@@ -23,7 +23,7 @@ from dex2c.util import (
     is_synthetic_method,
     is_native_method,
 )
-from subprocess import check_call, STDOUT, run, CalledProcessError
+from subprocess import check_call, PIPE, STDOUT, run, CalledProcessError
 from random import choice
 from string import ascii_letters, digits
 from shutil import copy, move, make_archive, rmtree, copytree
@@ -204,16 +204,23 @@ def change_max_sdk(command=list(), max_sdk="33", update_existing=True):
 # n
 def zipalign(input_apk, output_apk):
     Logger.info(f"Zipaligning {input_apk} -> {output_apk}")
+    command = ["zipalign"]
 
-    command = [
-        "zipalign",
-        "-P",
-        "16",
-        "-f",
-        "4",
-        input_apk,
-        output_apk,
-    ]
+    def _new_zipalign():
+        try:
+            result = run(command, input="", stderr=PIPE, text=True)
+            return "-P <pagesize_kb>" in result.stderr
+        except (CalledProcessError, FileNotFoundError):
+            return False
+
+    if _new_zipalign():
+        Logger.info("Using latest zipalign (-P 16)")
+        command.extend(["-P", "16", "-f", "4"])
+    else:
+        Logger.info("Using legacy zipalign (-p)")
+        command.extend(["-p", "-f", "4"])
+
+    command.extend([input_apk, output_apk])
 
     try:
         check_call(command, stderr=STDOUT)
