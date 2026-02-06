@@ -119,7 +119,7 @@ Python 3.8 or higher is required for running this tool. So, make sure your pytho
 
 One Step Installation: Run Below Command
    ```bash
-   pkg install wget && wget -O termux_install.sh https://raw.githubusercontent.com/codehasan/dex2c/master/termux_install.sh && chmod -R +x termux_install.sh && ./termux_install.sh
+   curl -L# -o termux_install.sh https://raw.githubusercontent.com/codehasan/dex2c/master/termux_install.sh && bash termux_install.sh
    ```
 > NOTE: Some users have reported about installation errors with latest `clang` on termux. If you happen to face the same issue, then uncomment the lines stated in `termux_install.sh` and then proceed with the installation.
 
