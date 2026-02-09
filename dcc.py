@@ -337,7 +337,7 @@ def auto_vm(filename):
 
 
 class MethodFilter(object):
-    def __init__(self, configure, vm):
+    def __init__(self, rules, vm):
         self._compile_filters = []
         self._keep_filters = []
         self._compile_full_match = set()
@@ -346,29 +346,22 @@ class MethodFilter(object):
         self.native_methods = set()
         self.annotated_methods = set()
 
-        self._load_filter_configure(configure)
+        self._load_filter_rules(rules)
         self._init_conflict_methods(vm)
         self._init_native_methods(vm)
         self._init_annotation_methods(vm)
 
-    def _load_filter_configure(self, configure):
-        if not path.exists(configure):
-            return
-
-        with open(configure) as fp:
-            for line in fp:
-                line = line.strip()
-                if not line or line[0] == "#":
-                    continue
-
-                if line[0] == "!":
-                    line = line[1:].strip()
-                    self._keep_filters.append(re.compile(line))
-                elif line[0] == "=":
-                    line = line[1:].strip()
-                    self._compile_full_match.add(line)
-                else:
-                    self._compile_filters.append(re.compile(line))
+    def _load_filter_rules(self, rules):
+        for line in rules:
+            line = line.strip()
+            if line[0] == "!":
+                line = line[1:].strip()
+                self._keep_filters.append(re.compile(line))
+            elif line[0] == "=":
+                line = line[1:].strip()
+                self._compile_full_match.add(line)
+            else:
+                self._compile_filters.append(re.compile(line))
 
     def _init_conflict_methods(self, vm):
         all_methods = {}
@@ -611,7 +604,33 @@ def archive_compiled_code(project_dir):
     return outfile
 
 
-def compile_dex(apkfile, filtercfg, obfus, dynamic_register):
+def compile_dex(apkfile, filtercfg, obfus, dynamic_register, allow_global):
+    parsed_rules = []
+
+    with open(filtercfg, "r", encoding="utf-8") as fp:
+        for line in fp:
+            rule = line.strip()
+            if not rule or rule.startswith("#"):
+                continue
+
+            if rule == ".*" and not allow_global:
+                Logger.error(
+                    "Global catch-all rule (.*) detected\n" +
+                    "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n" +
+                    "A global wildcard \033[33m(.*)\033[0m will likely break your build.\n" +
+                    "Converting all classes to native code is highly unstable and not recommended because:\n\n" +
+                    "  1. \033[1mIt hits Android internals:\033[0m Some system classes cannot be converted.\n" +
+                    "  2. \033[1mRuntime crashes:\033[0m System-level logic may fail when wrapped in JNI.\n\n" +
+                    "\033[1mSuggested Fix:\033[0m Targeted conversion is safer and more reliable. Example:\n" +
+                    "  \033[32m- com/some/package/.*;.*\033[0m\n\n" +
+                    "If you really need to process everything, bypass this check with:\n" +
+                    "  \033[33m--allow-global\033[0m\n" +
+                    "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n"
+                )
+                return {}, {}, []
+
+            parsed_rules.append(rule)
+
     dex_files = auto_vm(apkfile)
     dex_analysis = analysis.Analysis()
 
@@ -623,7 +642,7 @@ def compile_dex(apkfile, filtercfg, obfus, dynamic_register):
         dex_analysis.add(dex)
 
     for dex in dex_files:
-        method_filter = MethodFilter(filtercfg, dex)
+        method_filter = MethodFilter(parsed_rules, dex)
 
         compiler = Dex2C(dex, dex_analysis, obfus, dynamic_register)
 
@@ -866,6 +885,7 @@ def dcc_main(
     source_archive="project-source.zip",
     dynamic_register=False,
     disable_signing=False,
+    allow_global=False,
     enable_ollvm=False,
     ollvm_flags="",
 ):
@@ -916,7 +936,7 @@ def dcc_main(
 
     # Convert dex to cpp
     compiled_methods, method_prototypes, errors = compile_dex(
-        apkfile, filtercfg, obfus, dynamic_register
+        apkfile, filtercfg, obfus, dynamic_register, allow_global
     )
 
     if errors:
@@ -1181,6 +1201,11 @@ if __name__ == "__main__":
         default=False,
         help="Disable APK signing.",
     )
+    parser.add_argument(
+        "--allow-global",
+        action="store_true",
+        help="Allow global filter rules like '.*' (not recommended)",
+    )
 
     args = vars(parser.parse_args())
     input_apk = args["input"]
@@ -1194,6 +1219,7 @@ if __name__ == "__main__":
     source_archive = args["project_archive"]
     dynamic_register = args["dynamic_register"]
     disable_signing = args["disable_signing"]
+    allow_global = args["allow_global"]
     enable_ollvm = False
     ollvm_flags = ""
 
@@ -1245,6 +1271,7 @@ if __name__ == "__main__":
             source_archive,
             dynamic_register,
             disable_signing,
+            allow_global,
             enable_ollvm,
             ollvm_flags,
         )
