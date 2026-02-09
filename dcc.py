@@ -728,33 +728,8 @@ def get_application_class_file(decompiled_dir, smali_folders, application_name):
                 return filePath
 
     return ""
-
-
 # n
-def backup_jni_project_folder():
-    Logger.info("Backing up jni folder")
-
-    src_path = path.join("project", "jni")
-    dest_path = make_temp_dir("jni-")
-
-    copytree(src_path, dest_path, dirs_exist_ok=True)
-    return dest_path
-
-
-# n
-def restore_jni_project_folder(src_path):
-    Logger.info("Restoring jni folder")
-
-    dest_path = path.join("project", "jni")
-
-    if path.exists(dest_path) and path.isdir(dest_path):
-        rmtree(dest_path)
-
-    copytree(src_path, dest_path)
-
-
-# n
-def adjust_application_mk(apkfile):
+def adjust_application_mk(apkfile, project_dir):
     Logger.info("Adjusting Application.mk file using available abis from apk")
 
     supported_abis = {"armeabi-v7a", "arm64-v8a", "x86_64", "x86"}
@@ -789,7 +764,7 @@ def adjust_application_mk(apkfile):
             )
             return
 
-        application_mk_path = "project/jni/Application.mk"
+        application_mk_path = path.join(project_dir, "jni", "Application.mk")
         temp_application_mk_path = make_temp_file("-application.mk")
 
         with open(application_mk_path, "r") as application_mk_file:
@@ -880,8 +855,8 @@ def dcc_main(
     filtercfg,
     custom_loader,
     outapk,
+    project_dir,
     do_compile=True,
-    project_dir=None,
     source_archive="project-source.zip",
     dynamic_register=False,
     disable_signing=False,
@@ -903,21 +878,21 @@ def dcc_main(
     # If OLLVM is enabled, add ollvm CFLAGS
     if enable_ollvm:
         Logger.warning("You've enabled ollvm flag, make sure your NDK supports it!")
-        # ollvm_cflags = f"LOCAL_CFLAGS := {ollvm_flags}\n"
         ollvm_cppflags = f"LOCAL_CPPFLAGS := {ollvm_flags}\n"
 
-        with open("project/jni/Android.mk", "r+") as file:
+        android_mk_path = path.join(project_dir, "jni", "Android.mk")
+        with open(android_mk_path, "r+") as file:
             lines = file.readlines()
             for index, line in enumerate(lines):
                 if "LOCAL_LDLIBS    := -llog" in line:
-                    # lines.insert(index + 1, ollvm_cflags)
                     lines.insert(index + 1, ollvm_cppflags)
                     break
             file.seek(0)
             file.writelines(lines)
 
     # Modify the dex2c file to use the custom loader path for integrity check
-    with open("project/jni/nc/Dex2C.cpp", "r") as file:
+    dex2c_cpp_path = path.join(project_dir, "jni", "nc", "Dex2C.cpp")
+    with open(dex2c_cpp_path, "r") as file:
         dex2c_file_data = file.read()
 
     dex2c_file_data = dex2c_file_data.replace(
@@ -928,11 +903,11 @@ def dcc_main(
         "Java_amimo_dcc_DccApplication", "Java_" + custom_loader.replace(".", "_")
     )
 
-    with open("project/jni/nc/Dex2C.cpp", "w") as file:
+    with open(dex2c_cpp_path, "w") as file:
         file.write(dex2c_file_data)
 
     if not IGNORE_APP_LIB_ABIS:
-        adjust_application_mk(apkfile)
+        adjust_application_mk(apkfile, project_dir)
 
     # Convert dex to cpp
     compiled_methods, method_prototypes, errors = compile_dex(
@@ -948,19 +923,11 @@ def dcc_main(
         Logger.info("No methods compiled! Check your filter file.")
         return
 
-    if project_dir:
-        if not path.exists(project_dir):
-            copytree("project", project_dir)
-        write_compiled_methods(project_dir, compiled_methods)
-    else:
-        project_dir = make_temp_dir("dcc-project-")
-        rmtree(project_dir)
-        copytree("project", project_dir)
-        write_compiled_methods(project_dir, compiled_methods)
+    write_compiled_methods(project_dir, compiled_methods)
 
-        if not do_compile:
-            src_zip = archive_compiled_code(project_dir)
-            move(src_zip, source_archive)
+    if not do_compile:
+        src_zip = archive_compiled_code(project_dir)
+        move(src_zip, source_archive)
 
     if do_compile:
         if dynamic_register:
@@ -976,7 +943,7 @@ def dcc_main(
 
         # n
         smali_folders = get_smali_folders(decompiled_dir)
-        android_mk_file_path = "project/jni/Android.mk"
+        android_mk_file_path = path.join(project_dir, "jni", "Android.mk")
         loader_file_path = "loader/DccApplication.smali"
         temp_loader = make_temp_file("-Loader.smali")
 
@@ -1256,8 +1223,13 @@ if __name__ == "__main__":
     # Must be invoked first before invoking any other method
     create_tmp_directory()
 
-    # Backing up jni folder because modifications will be made in runtime
-    backup_jni_folder_path = backup_jni_project_folder()
+    if project_dir:
+        if not path.exists(project_dir):
+            copytree("project", project_dir)
+    else:
+        project_dir = make_temp_dir("dcc-project-")
+        rmtree(project_dir)
+        copytree("project", project_dir)
 
     try:
         dcc_main(
@@ -1266,8 +1238,8 @@ if __name__ == "__main__":
             filtercfg,
             custom_loader,
             out_apk,
-            do_compile,
             project_dir,
+            do_compile,
             source_archive,
             dynamic_register,
             disable_signing,
@@ -1279,6 +1251,4 @@ if __name__ == "__main__":
         Logger.error("Compile %s failed!" % input_apk, exc_info=True)
         print(f"{str(e)}")
     finally:
-        # n
-        restore_jni_project_folder(backup_jni_folder_path)
         clean_tmp_directory()
